@@ -1,4 +1,4 @@
-import{d as e,u as r,j as n,N as a}from"./index-CI1v9BQc.js";const t={Wrapper:e.div`
+import{d as e,u as r,j as n,N as a}from"./index-D6v0_fcT.js";const t={Wrapper:e.div`
         background-color: #111;
         padding: 15px;
         display: flex;
@@ -85,4 +85,4 @@ import{d as e,u as r,j as n,N as a}from"./index-CI1v9BQc.js";const t={Wrapper:e.
         margin-top: 28px;
         font-size: 13px;
         color: #777;
-    `},s=()=>{const o=r();return n.jsx(t.Wrapper,{role:"main","aria-labelledby":"nf-title",children:n.jsxs(t.Inner,{children:[n.jsx(t.Code,{children:"404"}),n.jsx(t.Title,{id:"nf-title",children:"Page not found"}),n.jsx(t.Subtitle,{children:"The page you’re looking for may have moved, been renamed, or never existed."}),n.jsxs(t.Actions,{children:[n.jsx(t.Button,{onClick:()=>o(-1),"aria-label":"Go back",children:"Go back"}),n.jsx(a,{to:"/",children:n.jsx(t.Button,{as:"span",children:"Go home"})})]}),n.jsx(t.Small,{children:"Availability: Open to full-time roles (Bengaluru/remote) & select freelance projects."})]})})};export{s as default};
+    `},s=()=>{const o=r();return n.jsx(t.Wrapper,{role:"main","aria-labelledby":"nf-title",children:n.jsxs(t.Inner,{children:[n.jsx(t.Code,{children:"404"}),n.jsx(t.Title,{id:"nf-title",children:"Page not found"}),n.jsx(t.Subtitle,{children:"The page you're looking for may have moved, been renamed, or never existed."}),n.jsxs(t.Actions,{children:[n.jsx(t.Button,{onClick:()=>o(-1),"aria-label":"Go back",children:"Go back"}),n.jsx(a,{to:"/",children:n.jsx(t.Button,{as:"span",children:"Go home"})})]}),n.jsx(t.Small,{children:"Availability: Open to full-time roles (Bengaluru/remote) & select freelance projects."})]})})};export{s as default};
