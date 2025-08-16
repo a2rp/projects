@@ -12,7 +12,7 @@ const NotFound = () => {
                 <Styled.Code>404</Styled.Code>
                 <Styled.Title id="nf-title">Page not found</Styled.Title>
                 <Styled.Subtitle>
-                    The page you’re looking for may have moved, been renamed, or never existed.
+                    The page you're looking for may have moved, been renamed, or never existed.
                 </Styled.Subtitle>
 
                 <Styled.Actions>

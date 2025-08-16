@@ -8,8 +8,6 @@ Features
 
 🔎 Search by project name or tech
 
-🏷️ Tag chips for stacks
-
 🔗 One-click Live and Code links
 
-⚡ Deployed to GitHub Pages (no YAML; gh-pages script)
+⚡ Deployed to GitHub Pages

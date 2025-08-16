@@ -63,6 +63,7 @@ export const Styled = {
     `,
     FooterCol: styled.div`
         font-size: 12px;
+
         a {
             text-decoration: none;
             padding: 5px 0;
