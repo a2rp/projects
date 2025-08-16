@@ -1,18 +1,15 @@
-![alt text](image.png)
+Projects Index – Ashish Ranjan
 
-# react-vite-basic
+Live: https://a2rp.github.io/projects
 
-Minimal starter using React 18.2 + Vite
+A simple, fast directory of my projects with quick links to code & live demos. Built with React + Vite + Styled-Components.
 
-## Features
+Features
 
--   React 18.2.0
--   Vite
--   No React Router
+🔎 Search by project name or tech
 
-## Getting Started
+🏷️ Tag chips for stacks
 
-```bash
-npm install
-npm run dev
-```
+🔗 One-click Live and Code links
+
+⚡ Deployed to GitHub Pages (no YAML; gh-pages script)
