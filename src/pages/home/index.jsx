@@ -30,7 +30,15 @@ const projects = [
         live: "https://a2rp.github.io/tooltip-pro/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/tooltip-pro" }],
     },
+    {
+        name: "Tabs Pro",
+        desc: "Accessible tabs with keyboard navigation (←/→/Home/End), add/close tabs, and localStorage persistence.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/tabs-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/tabs-pro" }],
+    },
 ];
+
 
 
 const Home = () => {
