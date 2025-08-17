@@ -16,7 +16,22 @@ const projects = [
         live: "https://a2rp.github.io/resume/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/resume" }],
     },
+    {
+        name: "Modal/Drawer Pro",
+        desc: "Accessible modal & drawer with nesting (z-stack), ESC/backdrop close, scroll-lock, localStorage, confirm dialog, and toasts.",
+        tech: ["React", "Vite", "Styled Components", "React Toastify"],
+        live: "https://a2rp.github.io/modal-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/modal-pro" }],
+    },
+    {
+        name: "Tooltip Pro",
+        desc: "Dependency-free tooltips & popovers with smart positioning (flip/shift/arrow), hover/focus/click triggers, and accessible ARIA wiring.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/tooltip-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/tooltip-pro" }],
+    },
 ];
+
 
 const Home = () => {
     const [q, setQ] = useState("");
