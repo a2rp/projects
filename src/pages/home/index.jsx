@@ -32,12 +32,27 @@ const projects = [
     },
     {
         name: "Tabs Pro",
-        desc: "Accessible tabs with keyboard navigation (←/→/Home/End), add/close tabs, and localStorage persistence.",
+        desc: "Accessible tabs with add/close and localStorage persistence (no keyboard shortcuts).",
         tech: ["React", "Vite", "Styled Components"],
         live: "https://a2rp.github.io/tabs-pro/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/tabs-pro" }],
     },
+    {
+        name: "Accordion Pro",
+        desc: "Click-only accordion (no keyboard controls) with localStorage persistence and expand/collapse helpers.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/accordion-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/accordion-pro" }],
+    },
+    {
+        name: "Dropdown/Menu Pro",
+        desc: "Click-only dropdown with one-level submenu, smart placement (flip & clamp), outside-click close. No portals used.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/dropdown-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/dropdown-pro" }],
+    },
 ];
+
 
 
 
