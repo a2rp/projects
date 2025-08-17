@@ -1,4 +1,4 @@
-import{d as o,r as l,j as e,R as x}from"./index-Ct5KRkDJ.js";const a={Wrapper:o.div`
+import{d as o,r as l,j as e,R as x}from"./index-CvIVw5bE.js";const a={Wrapper:o.div`
         max-width: 1100px;
         margin: 0 auto;
         padding: 40px 20px;
@@ -55,6 +55,13 @@ import{d as o,r as l,j as e,R as x}from"./index-Ct5KRkDJ.js";const a={Wrapper:o.
         }
         tbody tr:last-child td {
             border-bottom: 0;
+        }
+        tbody {
+            tr {
+                &:hover {
+                    background-color: #000;
+                }
+            }
         }
         a {
             color: #4f8cff;
