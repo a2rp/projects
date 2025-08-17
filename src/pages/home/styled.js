@@ -71,6 +71,13 @@ export const Styled = {
         tbody tr:last-child td {
             border-bottom: 0;
         }
+        tbody {
+            tr {
+                &:hover {
+                    background-color: #000;
+                }
+            }
+        }
         a {
             color: #4f8cff;
             text-decoration: none;
