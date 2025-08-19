@@ -2,10 +2,14 @@ import styled from "styled-components";
 
 export const Styled = {
     Wrapper: styled.div`
-        max-width: 1100px;
+        max-width: 1440px;
         margin: 0 auto;
         padding: 40px 20px;
         color: #e6e9f0;
+
+        @media (width<900px) {
+            padding: 40px 0;
+        }
     `,
 
     Head: styled.div`

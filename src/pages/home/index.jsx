@@ -50,6 +50,12 @@ const projects = [
         tech: ["React", "Vite", "Styled Components"],
         live: "https://a2rp.github.io/dropdown-pro/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/dropdown-pro" }],
+    }, {
+        name: "KYC Verification",
+        desc: "React KYC verification UI with styled-components, RHF+Yup validation, image preview & clear, header actions, toasts, and localStorage draft save.",
+        tech: ["React", "Vite", "Styled Components", "React Hook Form", "Yup", "React Toastify"],
+        live: "https://a2rp.github.io/kyc-verification/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/kyc-verification" }],
     },
 ];
 
