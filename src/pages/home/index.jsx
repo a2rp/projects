@@ -62,6 +62,12 @@ const projects = [
         tech: ["React", "Vite", "Styled Components"],
         live: "https://a2rp.github.io/blob-generator/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/blob-generator" }],
+    }, {
+        name: "Blood Bank",
+        desc: "Frontend-only blood bank app: donor search/filters, register form (RHF + Zod), contact messages with confirm modal, donor details modal with edit, dark/light theme, localStorage persistence.",
+        tech: ["React", "Vite", "Styled Components", "React Router", "React Hook Form", "Zod"],
+        live: "https://a2rp.github.io/blood-bank/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/blood-bank" }],
     }
 ];
 
