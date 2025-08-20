@@ -68,7 +68,13 @@ const projects = [
         tech: ["React", "Vite", "Styled Components", "React Router", "React Hook Form", "Zod"],
         live: "https://a2rp.github.io/blood-bank/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/blood-bank" }],
-    }
+    }, {
+        name: "HealthPro – BMI",
+        desc: "Advanced BMI calculator with unit conversions (kg/lb, cm or ft+in), WHO categories (incl. Class I–III), healthy weight range, i18n (EN/HI), history & CSV export. Self-made confirm modals, accessible form, and localStorage persistence.",
+        tech: ["React", "Vite", "Styled Components", "React Router", "Tolgee (i18n)"],
+        live: "https://a2rp.github.io/bmi-calculator/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/bmi-calculator" }],
+    },
 ];
 
 
