@@ -56,7 +56,13 @@ const projects = [
         tech: ["React", "Vite", "Styled Components", "React Hook Form", "Yup", "React Toastify"],
         live: "https://a2rp.github.io/kyc-verification/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/kyc-verification" }],
-    },
+    }, {
+        name: "Blob Generator",
+        desc: "CSS blob generator with size controls, 4-corner radii, gradient angle & colors, live preview, Copy CSS, and Randomize/Reset.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/blob-generator/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/blob-generator" }],
+    }
 ];
 
 
