@@ -69,8 +69,8 @@ const projects = [
         live: "https://a2rp.github.io/blood-bank/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/blood-bank" }],
     }, {
-        name: "HealthPro – BMI",
-        desc: "Advanced BMI calculator with unit conversions (kg/lb, cm or ft+in), WHO categories (incl. Class I–III), healthy weight range, i18n (EN/HI), history & CSV export. Self-made confirm modals, accessible form, and localStorage persistence.",
+        name: "HealthPro - BMI",
+        desc: "Advanced BMI calculator with unit conversions (kg/lb, cm or ft+in), WHO categories (incl. Class I-III), healthy weight range, i18n (EN/HI), history & CSV export. Self-made confirm modals, accessible form, and localStorage persistence.",
         tech: ["React", "Vite", "Styled Components", "React Router", "Tolgee (i18n)"],
         live: "https://a2rp.github.io/bmi-calculator/",
         code: [{ label: "Repo", url: "https://github.com/a2rp/bmi-calculator" }],
@@ -145,7 +145,7 @@ const Home = () => {
                                         <td>
                                             {p.live ? (
                                                 <a href={p.live} target="_blank" rel="noopener noreferrer">Open</a>
-                                            ) : "—"}
+                                            ) : "-"}
                                         </td>
                                         <td>
                                             {(p.code || []).length
@@ -157,7 +157,7 @@ const Home = () => {
                                                         {idx < p.code.length - 1 ? " · " : ""}
                                                     </React.Fragment>
                                                 ))
-                                                : "—"}
+                                                : "-"}
                                         </td>
                                     </tr>
                                 ))}
