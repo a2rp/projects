@@ -6,10 +6,9 @@ import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Styled } from "./App.styled";
 import ScrollToTop from "./components/ScrollToTop";
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const Home = lazy(() => sleep(800).then(() => import("./pages/home")));
-const About = lazy(() => sleep(800).then(() => import("./pages/about")));
-const NotFound = lazy(() => sleep(800).then(() => import("./pages/notFound")));
+const Home = lazy(() => import("./pages/home"));
+const About = lazy(() => import("./pages/about"));
+const NotFound = lazy(() => import("./pages/notFound"));
 
 const navItems = [
     { label: "Projects", to: "/" },
@@ -72,9 +71,19 @@ const App = () => {
     const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
-        document.body.style.overflow = menuOpen ? "hidden" : "";
+        if (!menuOpen) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        const closeOnEscape = (event) => {
+            if (event.key === "Escape") setMenuOpen(false);
+        };
+
+        document.body.style.overflow = "hidden";
+        document.addEventListener("keydown", closeOnEscape);
+
         return () => {
-            document.body.style.overflow = "";
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener("keydown", closeOnEscape);
         };
     }, [menuOpen]);
 
