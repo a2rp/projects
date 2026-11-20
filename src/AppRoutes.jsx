@@ -1,32 +1,16 @@
-import { Box, CircularProgress } from "@mui/material";
 import { lazy, Suspense } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
+import Spinner from "./components/spinner";
 
 const Home = lazy(() => import("./pages/home"));
 const About = lazy(() => import("./pages/about"));
 const NotFound = lazy(() => import("./pages/notFound"));
 
-function RouteFallback() {
-    return (
-        <Box
-            role="status"
-            aria-label="Loading page"
-            sx={{
-                minHeight: "60vh",
-                display: "grid",
-                placeItems: "center",
-            }}
-        >
-            <CircularProgress aria-hidden="true" />
-        </Box>
-    );
-}
-
 const AppRoutes = () => {
     const location = useLocation();
 
     return (
-        <Suspense key={location.pathname} fallback={<RouteFallback />}>
+        <Suspense key={location.pathname} fallback={<Spinner />}>
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
