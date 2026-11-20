@@ -1,35 +1,34 @@
-import React from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Styled } from "./styled";
+import { NavLink, useNavigate } from "react-router-dom";
+import styles from "./style.module.css";
 
 const NotFound = () => {
     const navigate = useNavigate();
 
     return (
-        <Styled.Wrapper role="main" aria-labelledby="nf-title">
-            <Styled.Inner>
+        <div className={styles.wrapper} role="main" aria-labelledby="nf-title">
+            <div className={styles.inner}>
 
-                <Styled.Code>404</Styled.Code>
-                <Styled.Title id="nf-title">Page not found</Styled.Title>
-                <Styled.Subtitle>
+                <div className={styles.code}>404</div>
+                <h1 className={styles.title} id="nf-title">Page not found</h1>
+                <p className={styles.subtitle}>
                     The page you're looking for may have moved, been renamed, or never existed.
-                </Styled.Subtitle>
+                </p>
 
-                <Styled.Actions>
-                    <Styled.Button
+                <div className={styles.actions}>
+                    <button className={styles.button}
                         onClick={() => navigate(-1)}
                         aria-label="Go back"
-                    >Go back</Styled.Button>
+                    >Go back</button>
                     <NavLink
                         to="/"
-                    ><Styled.Button as="span">Go home</Styled.Button></NavLink>
-                </Styled.Actions>
+                    ><span className={styles.button}>Go home</span></NavLink>
+                </div>
 
-                <Styled.Small>
+                <p className={styles.small}>
                     Availability: Open to full-time roles (Bengaluru/remote) & select freelance projects.
-                </Styled.Small>
-            </Styled.Inner>
-        </Styled.Wrapper>
+                </p>
+            </div>
+        </div>
     );
 };
 

@@ -1,0 +1,29 @@
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main {
+    width: 100%;
+    max-width: 600px;
+}
+
+.main h3 {
+    color: #fff;
+}
+
+.main p {
+    margin-bottom: 30px;
+}
+
+.main p b {
+    color: orangered;
+    margin-top: 15px;
+    display: block;
+}
+
+.main ul {
+    margin-left: 15px;
+    margin-bottom: 30px;
+}

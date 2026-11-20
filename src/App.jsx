@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
 import { NavLink, Route, Routes, useLocation } from "react-router-dom";
-import { Styled } from "./App.styled";
+import styles from "./style.module.css";
 import ScrollToTop from "./components/ScrollToTop";
 
 const Home = lazy(() => import("./pages/home"));
@@ -92,28 +92,33 @@ const App = () => {
     }, [location.pathname]);
 
     return (
-        <Styled.Wrapper>
-            <Styled.Header>
-                <Styled.HeaderMain>
-                    <Styled.BrandLink to="/" aria-label="Projects Index home">
+        <div className={styles.wrapper}>
+            <header className={styles.header}>
+                <div className={styles.headerMain}>
+                    <NavLink className={styles.brandLink} to="/" aria-label="Projects Index home">
                         <img src="/projects/logo.png" alt="Ashish Ranjan logo" />
                         <span>
                             <small>ASHISH RANJAN</small>
                             <strong>Projects Index</strong>
                         </span>
-                    </Styled.BrandLink>
+                    </NavLink>
 
-                    <Styled.HeaderNav aria-label="Primary navigation">
+                    <nav className={styles.headerNav} aria-label="Primary navigation">
                         {navItems.map((item) => (
-                            <Styled.NavLink key={item.to} to={item.to} end={item.to === "/"}>
+                            <NavLink
+                                className={({ isActive }) => isActive ? styles.activeNavLink : styles.navLink}
+                                key={item.to}
+                                to={item.to}
+                                end={item.to === "/"}
+                            >
                                 {item.label}
-                            </Styled.NavLink>
+                            </NavLink>
                         ))}
-                    </Styled.HeaderNav>
+                    </nav>
 
-                    <Styled.HeaderActions>
+                    <div className={styles.headerActions}>
                         <a
-                            className="sourceLink"
+                            className={styles.sourceLink}
                             href="https://github.com/a2rp/projects"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -121,32 +126,39 @@ const App = () => {
                             <FaGithub aria-hidden="true" />
                             <span>Repository</span>
                         </a>
-                        <Styled.MenuButton
+                        <button
+                            className={styles.menuButton}
                             type="button"
                             onClick={() => setMenuOpen((current) => !current)}
                             aria-label={menuOpen ? "Close menu" : "Open menu"}
                             aria-expanded={menuOpen}
                         >
                             {menuOpen ? <FiX aria-hidden="true" /> : <FiMenu aria-hidden="true" />}
-                        </Styled.MenuButton>
-                    </Styled.HeaderActions>
-                </Styled.HeaderMain>
+                        </button>
+                    </div>
+                </div>
 
                 {menuOpen && (
-                    <Styled.MobileMenu>
+                    <nav className={styles.mobileMenu} aria-label="Mobile navigation">
                         {navItems.map((item) => (
-                            <Styled.NavLink key={item.to} to={item.to} end={item.to === "/"} onClick={() => setMenuOpen(false)}>
+                            <NavLink
+                                className={({ isActive }) => isActive ? styles.activeMobileNavLink : styles.mobileNavLink}
+                                key={item.to}
+                                to={item.to}
+                                end={item.to === "/"}
+                                onClick={() => setMenuOpen(false)}
+                            >
                                 {item.label}
-                            </Styled.NavLink>
+                            </NavLink>
                         ))}
-                        <a href="https://github.com/a2rp/projects" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
+                        <a className={styles.mobileNavLink} href="https://github.com/a2rp/projects" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
                             <FaGithub aria-hidden="true" /> Repository
                         </a>
-                    </Styled.MobileMenu>
+                    </nav>
                 )}
-            </Styled.Header>
+            </header>
 
-            <Styled.Main>
+            <main className={styles.main}>
                 <ScrollToTop />
                 <Suspense
                     key={location.pathname}
@@ -162,27 +174,27 @@ const App = () => {
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                 </Suspense>
-            </Styled.Main>
+            </main>
 
-            <Styled.Footer>
-                <Styled.FooterMain>
-                    <Styled.FooterCol>
+            <footer className={styles.footer}>
+                <div className={styles.footerMain}>
+                    <div className={styles.footerCol}>
                         <span>Copyright {"©"} {new Date().getFullYear()} </span>
                         <a href="https://www.ashishranjan.net/" target="_blank" rel="noopener noreferrer">
                             Ashish Ranjan
                         </a>
-                    </Styled.FooterCol>
-                    <Styled.FooterCol>
+                    </div>
+                    <div className={styles.footerCol}>
                         <small>Connect</small>
                         <FooterLinks links={connectLinks} />
-                    </Styled.FooterCol>
-                    <Styled.FooterCol>
+                    </div>
+                    <div className={styles.footerCol}>
                         <small>Support</small>
                         <FooterLinks links={supportLinks} />
-                    </Styled.FooterCol>
-                </Styled.FooterMain>
-            </Styled.Footer>
-        </Styled.Wrapper>
+                    </div>
+                </div>
+            </footer>
+        </div>
     );
 };
 

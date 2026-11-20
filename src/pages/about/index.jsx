@@ -1,11 +1,10 @@
-import React from 'react'
-import { Styled } from './styled'
+import styles from './style.module.css'
 
 const About = () => {
     return (
         <>
-            <Styled.Wrapper>
-                <Styled.Main>
+            <div className={styles.wrapper}>
+                <div className={styles.main}>
                     <p>
                         I'm Ashish Ranjan, a full-stack JavaScript developer based in Bengaluru, India. I design and build web products that feel effortless-fast frontends, dependable APIs, and clean DevOps-so teams can ship more in less time.
                     </p>
@@ -58,8 +57,8 @@ const About = () => {
                         Full-stack dev in Bengaluru building fast, SEO-friendly React+Node apps with secure APIs and CI/CD. <br />
                         <b>Open to full-time roles and freelance.</b>
                     </p>
-                </Styled.Main>
-            </Styled.Wrapper>
+                </div>
+            </div>
         </>
     )
 }

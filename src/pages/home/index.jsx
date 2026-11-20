@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { Styled } from "./styled";
+import styles from "./style.module.css";
 
 const projects = [
     {
         name: "Projects Index",
         desc: "Directory of all my projects with search and quick links.",
-        tech: ["React", "Vite", "Styled Components"],
+        tech: ["React", "Vite", "CSS Modules"],
         live: "https://a2rp.github.io/projects",
         code: [{ label: "Repo", url: "https://github.com/a2rp/projects" }],
     },
@@ -103,22 +103,23 @@ const Home = () => {
 
     return (
         <>
-            <Styled.Wrapper>
-                <Styled.Head>
+            <div className={styles.wrapper}>
+                <div className={styles.head}>
                     <div>
-                        <Styled.Title>Projects Index</Styled.Title>
-                        <Styled.Sub>Search by name, description, or tech stack</Styled.Sub>
+                        <h2 className={styles.title}>Projects Index</h2>
+                        <p className={styles.sub}>Search by name, description, or tech stack</p>
                     </div>
-                    <Styled.Search
+                    <input
+                        className={styles.search}
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
                         placeholder="Search projects…"
                     />
-                </Styled.Head>
+                </div>
 
                 {filtered.length > 0 ? (
-                    <Styled.TableWrapper>
-                        <Styled.Table>
+                    <div className={styles.tableWrapper}>
+                        <table className={styles.table}>
                             <thead>
                                 <tr>
                                     <th style={{ width: 56 }}>#</th>
@@ -136,11 +137,11 @@ const Home = () => {
                                         <td>{p.name}</td>
                                         <td>{p.desc}</td>
                                         <td>
-                                            <Styled.Tags>
+                                            <div className={styles.tags}>
                                                 {(p.tech || []).map((t) => (
-                                                    <Styled.Tag key={t}>{t}</Styled.Tag>
+                                                    <span className={styles.tag} key={t}>{t}</span>
                                                 ))}
-                                            </Styled.Tags>
+                                            </div>
                                         </td>
                                         <td>
                                             {p.live ? (
@@ -162,15 +163,15 @@ const Home = () => {
                                     </tr>
                                 ))}
                             </tbody>
-                        </Styled.Table>
-                    </Styled.TableWrapper>
+                        </table>
+                    </div>
                 ) : (
                     <div style={{ width: "100%", padding: 15, textAlign: "center", backgroundColor: "#0f1320", borderRadius: 6 }}>
                         No project found
                     </div>
                 )}
 
-            </Styled.Wrapper>
+            </div>
         </>
     );
 };

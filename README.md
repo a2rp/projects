@@ -16,7 +16,7 @@ A searchable React directory of Ashish Ranjan's frontend projects with live demo
 
 ## Tech stack
 
-React, Vite, React Router, Material UI, styled-components, and React Icons.
+React, Vite, React Router, Material UI, CSS Modules, and React Icons.
 
 ## Run locally
 
