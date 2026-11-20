@@ -1,14 +1,10 @@
-import { Box, CircularProgress } from "@mui/material";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
-import { NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import styles from "./style.module.css";
 import ScrollToTop from "./components/ScrollToTop";
-
-const Home = lazy(() => import("./pages/home"));
-const About = lazy(() => import("./pages/about"));
-const NotFound = lazy(() => import("./pages/notFound"));
+import AppRoutes from "./AppRoutes";
 
 const navItems = [
     { label: "Projects", to: "/" },
@@ -160,20 +156,7 @@ const App = () => {
 
             <main className={styles.main}>
                 <ScrollToTop />
-                <Suspense
-                    key={location.pathname}
-                    fallback={
-                        <Box sx={{ minHeight: "60vh", display: "grid", placeItems: "center" }}>
-                            <CircularProgress aria-label="Loading page" />
-                        </Box>
-                    }
-                >
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
-                </Suspense>
+                <AppRoutes />
             </main>
 
             <footer className={styles.footer}>
