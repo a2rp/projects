@@ -94,13 +94,11 @@ const Header = () => {
                 </div>
             </div>
 
-            {menuOpen && (
-                <div
-                    className={styles.menuBackdrop}
-                    aria-hidden="true"
-                    onClick={() => setMenuOpen(false)}
-                />
-            )}
+            <div
+                className={`${styles.menuBackdrop} ${menuOpen ? styles.menuBackdropOpen : ""}`}
+                aria-hidden="true"
+                onClick={() => setMenuOpen(false)}
+            />
 
             <nav
                 className={`${styles.menuSlider} ${menuOpen ? styles.menuSliderOpen : ""}`}
