@@ -19,16 +19,17 @@ const Header = () => {
     useEffect(() => {
         if (!menuOpen) return undefined;
 
-        const previousOverflow = document.body.style.overflow;
+        const scrollArea = document.getElementById("page-scroll-area");
+        const previousOverflow = scrollArea?.style.overflow;
         const closeOnEscape = (event) => {
             if (event.key === "Escape") setMenuOpen(false);
         };
 
-        document.body.style.overflow = "hidden";
+        if (scrollArea) scrollArea.style.overflow = "hidden";
         document.addEventListener("keydown", closeOnEscape);
 
         return () => {
-            document.body.style.overflow = previousOverflow;
+            if (scrollArea) scrollArea.style.overflow = previousOverflow;
             document.removeEventListener("keydown", closeOnEscape);
         };
     }, [menuOpen]);
