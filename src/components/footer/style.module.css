@@ -1,11 +1,11 @@
 .footer {
+    width: 100%;
     border-top: 1px solid #242a38;
     background: #05070a;
 }
 
 .footerMain {
-    width: min(100%, 1440px);
-    margin: 0 auto;
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr auto auto;
     align-items: center;
