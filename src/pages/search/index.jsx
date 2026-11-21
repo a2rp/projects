@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     FiArrowUpRight,
     FiCode,
@@ -9,17 +9,9 @@ import {
     FiX,
 } from "react-icons/fi";
 import defaultProjectImage from "../../assets/default-project-hero.webp";
-import {
-    FALLBACK_PUBLIC_REPO_COUNT,
-    fetchAndCachePublicRepoCount,
-    readCachedPublicRepoCount,
-} from "../../data/githubProfile";
 import { projectCollections, projects } from "../../data/projects";
-import {
-    getProjectRepoName,
-    readCachedProjectScreenshots,
-    syncProjectScreenshots,
-} from "../../data/repositoryScreenshots";
+import { getProjectRepoName } from "../../data/githubPortfolio";
+import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
 import styles from "./style.module.css";
 
 const categories = [
@@ -41,39 +33,8 @@ const Search = () => {
     const [category, setCategory] = useState("all");
     const [techStack, setTechStack] = useState("all");
     const [sortOrder, setSortOrder] = useState("recent");
-    const [screenshots, setScreenshots] = useState(readCachedProjectScreenshots);
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
-    const [publicRepoCount, setPublicRepoCount] = useState(
-        () => readCachedPublicRepoCount() ?? FALLBACK_PUBLIC_REPO_COUNT,
-    );
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        fetchAndCachePublicRepoCount(controller.signal)
-            .then((count) => {
-                if (!controller.signal.aborted) setPublicRepoCount(count);
-            })
-            .catch(() => {
-                // Keep the cached or supplied profile count when GitHub is unavailable.
-            });
-
-        return () => controller.abort();
-    }, []);
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        syncProjectScreenshots(projects, controller.signal)
-            .then((nextScreenshots) => {
-                if (!controller.signal.aborted) setScreenshots(nextScreenshots);
-            })
-            .catch(() => {
-                // Keep cached screenshots when GitHub is unavailable.
-            });
-
-        return () => controller.abort();
-    }, []);
+    const { screenshots, publicRepoCount } = useGitHubPortfolio();
 
     const results = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();

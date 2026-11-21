@@ -1,132 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import heroImage from "../../assets/default-project-hero.webp";
+import {
+    GITHUB_OWNER,
+    getProjectRepoName,
+    getRepoTimestamp,
+} from "../../data/githubPortfolio";
 import { projectCollections, projects } from "../../data/projects";
+import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
 import styles from "./style.module.css";
-const GITHUB_OWNER = "a2rp";
 const HERO_EXCLUDED_REPOS = new Set(["a2rp", "projects"]);
-const REPO_CACHE_KEY = "projects-portfolio:github-repos:v1";
-const SCREENSHOT_CACHE_TTL = 24 * 60 * 60 * 1000;
 const defaultFeaturedProject = projects[projects.length - 1];
 
-const getProjectRepoName = (project) => {
-    const repoUrl = project.code?.find((item) => item.url)?.url || "";
-    const match = repoUrl.match(/github\.com\/[^/]+\/([^/?#]+)/i);
-    return match?.[1]?.replace(/\.git$/i, "").toLowerCase() || "";
-};
-
 const isEligibleHeroRepo = (repo) => !HERO_EXCLUDED_REPOS.has(repo?.name?.toLowerCase());
-
-const readCachedRepos = () => {
-    if (typeof window === "undefined") return [];
-
-    try {
-        const cached = JSON.parse(window.localStorage.getItem(REPO_CACHE_KEY) || "null");
-        return Array.isArray(cached?.repos)
-            ? cached.repos
-                .filter((repo) => repo?.name)
-                .map((repo) => ({
-                    ...repo,
-                    topics: Array.isArray(repo.topics) ? repo.topics : [],
-                    screenshotUrl: typeof repo.screenshotUrl === "string" ? repo.screenshotUrl : "",
-                }))
-            : [];
-    } catch {
-        return [];
-    }
-};
-
-const getRepoTimestamp = (repo) => Date.parse(repo?.pushedAt || repo?.updatedAt || "") || 0;
-
-const getRepositoryScreenshot = async (repo, signal) => {
-    if (!repo?.defaultBranch) return "";
-
-    try {
-        const response = await fetch(
-            `https://api.github.com/repos/${GITHUB_OWNER}/${repo.name}/git/trees/${encodeURIComponent(repo.defaultBranch)}?recursive=1`,
-            { headers: { Accept: "application/vnd.github+json" }, signal },
-        );
-        if (!response.ok) return "";
-
-        const tree = await response.json();
-        const screenshot = (tree.tree || [])
-            .filter((item) => {
-                if (item.type !== "blob" || !/\.(png|jpe?g|webp|avif|gif)$/i.test(item.path)) return false;
-                const path = item.path.toLowerCase();
-                const isKnownPortfolioLogo = repo.name.toLowerCase() === "projects"
-                    && /(^|\/)public\/preview\.png$/.test(path);
-                if (isKnownPortfolioLogo || /logo|icon|favicon/.test(path)) return false;
-
-                return /screenshot|screen-shot/.test(path)
-                    || /(^|\/)screenshots?\//.test(path)
-                    || /(^|[._/-])(preview|hero|banner|cover|og-image)([._/-]|$)/.test(path);
-            })
-            .sort((a, b) => {
-                const score = (path) => (
-                    (/screenshots?\//i.test(path) ? 4 : 0)
-                    + (/screenshot|screen-shot/i.test(path) ? 3 : 0)
-                    + (/preview|hero|banner|cover|og-image/i.test(path) ? 1 : 0)
-                );
-                return score(b.path) - score(a.path);
-            })[0];
-
-        if (!screenshot) return "";
-        const encodedPath = screenshot.path.split("/").map(encodeURIComponent).join("/");
-        return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${repo.name}/${encodeURIComponent(repo.defaultBranch)}/${encodedPath}`;
-    } catch {
-        return "";
-    }
-};
-
-const fetchPortfolioRepos = async (signal, cachedRepos) => {
-    const response = await fetch(
-        `https://api.github.com/users/${GITHUB_OWNER}/repos?sort=updated&per_page=100`,
-        { headers: { Accept: "application/vnd.github+json" }, signal },
-    );
-    if (!response.ok) throw new Error("Unable to load GitHub repositories");
-
-    const githubRepos = await response.json();
-    const repos = githubRepos
-        .filter((repo) => repo?.name)
-        .map((repo) => ({
-            name: repo.name,
-            pushedAt: repo.pushed_at,
-            updatedAt: repo.updated_at,
-            createdAt: repo.created_at,
-            language: repo.language,
-            description: repo.description || "",
-            htmlUrl: repo.html_url,
-            homepage: repo.homepage,
-            topics: Array.isArray(repo.topics) ? repo.topics : [],
-            defaultBranch: repo.default_branch,
-        }));
-
-    const latestRepo = repos
-        .filter(isEligibleHeroRepo)
-        .sort((a, b) => getRepoTimestamp(b) - getRepoTimestamp(a))[0];
-    if (!latestRepo) throw new Error("No eligible GitHub repositories found");
-    const screenshotCheckedFor = latestRepo.pushedAt || latestRepo.updatedAt || "";
-    const cachedLatestRepo = cachedRepos.find(
-        (repo) => repo.name.toLowerCase() === latestRepo.name.toLowerCase(),
-    );
-    const screenshotCheckedAt = Date.parse(cachedLatestRepo?.screenshotCheckedAt || "");
-    const screenshotCheckIsFresh = Date.now() - screenshotCheckedAt < SCREENSHOT_CACHE_TTL;
-    const cachedScreenshotIsCurrent = cachedLatestRepo?.defaultBranch === latestRepo.defaultBranch
-        && cachedLatestRepo?.screenshotCheckedFor === screenshotCheckedFor
-        && screenshotCheckIsFresh;
-    const screenshotUrl = cachedScreenshotIsCurrent
-        ? cachedLatestRepo.screenshotUrl
-        : await getRepositoryScreenshot(latestRepo, signal);
-    const nextScreenshotCheckedAt = cachedScreenshotIsCurrent
-        ? cachedLatestRepo.screenshotCheckedAt
-        : new Date().toISOString();
-
-    return repos.map((repo) => ({
-        ...repo,
-        screenshotUrl: repo.name === latestRepo.name ? screenshotUrl : "",
-        screenshotCheckedFor: repo.name === latestRepo.name ? screenshotCheckedFor : "",
-        screenshotCheckedAt: repo.name === latestRepo.name ? nextScreenshotCheckedAt : "",
-    }));
-};
 
 const formatRepoDate = (value) => {
     if (!value || !Number.isFinite(Date.parse(value))) return "Not synced";
@@ -139,58 +24,8 @@ const formatRepoDate = (value) => {
 
 const Home = () => {
     const [q, setQ] = useState("");
-    const [repoUpdates, setRepoUpdates] = useState(readCachedRepos);
     const [failedScreenshot, setFailedScreenshot] = useState("");
-
-    useEffect(() => {
-        const controller = new AbortController();
-        let isSyncing = false;
-
-        const syncRepos = async () => {
-            if (isSyncing || controller.signal.aborted) return;
-            isSyncing = true;
-
-            try {
-                const repos = await fetchPortfolioRepos(controller.signal, readCachedRepos());
-                if (controller.signal.aborted) return;
-
-                setRepoUpdates(repos);
-                try {
-                    window.localStorage.setItem(
-                        REPO_CACHE_KEY,
-                        JSON.stringify({ fetchedAt: new Date().toISOString(), repos }),
-                    );
-                } catch {
-                    // Keep the live GitHub data available even if storage is disabled.
-                }
-            } catch {
-                // Cached repository metadata keeps the hero useful while offline.
-            } finally {
-                isSyncing = false;
-            }
-        };
-
-        syncRepos();
-        const handleOnline = () => {
-            setFailedScreenshot("");
-            syncRepos();
-        };
-        const handleVisible = () => {
-            if (document.visibilityState === "visible") syncRepos();
-        };
-        const refreshInterval = window.setInterval(syncRepos, 5 * 60 * 1000);
-
-        window.addEventListener("online", handleOnline);
-        window.addEventListener("focus", syncRepos);
-        document.addEventListener("visibilitychange", handleVisible);
-        return () => {
-            controller.abort();
-            window.clearInterval(refreshInterval);
-            window.removeEventListener("online", handleOnline);
-            window.removeEventListener("focus", syncRepos);
-            document.removeEventListener("visibilitychange", handleVisible);
-        };
-    }, []);
+    const { repos: repoUpdates, screenshots } = useGitHubPortfolio();
 
     const latestRepo = useMemo(
         () => repoUpdates
@@ -241,7 +76,7 @@ const Home = () => {
             return { ...collection, projects: rankedProjects };
         });
     }, [featuredProject, latestRepo, repoUpdates]);
-    const heroScreenshot = latestRepo?.screenshotUrl;
+    const heroScreenshot = latestRepo ? screenshots[latestRepo.name.toLowerCase()] : "";
     const visibleHeroImage = heroScreenshot && failedScreenshot !== heroScreenshot
         ? heroScreenshot
         : heroImage;
