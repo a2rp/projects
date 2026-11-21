@@ -81,6 +81,21 @@ const projects = [
 
 
 
+const projectCollections = [
+    {
+        id: "apps",
+        title: "Apps & experiences",
+        subtitle: "Full projects built to solve real problems",
+        projects: ["Projects Index", "Public Resume (Releases)", "KYC Verification", "Blood Bank", "HealthPro - BMI"],
+    },
+    {
+        id: "interfaces",
+        title: "UI components & tools",
+        subtitle: "Reusable interfaces and interactive experiments",
+        projects: ["Modal/Drawer Pro", "Tooltip Pro", "Tabs Pro", "Accordion Pro", "Dropdown/Menu Pro", "Blob Generator"],
+    },
+];
+
 const GITHUB_OWNER = "a2rp";
 const REPO_CACHE_KEY = "projects-portfolio:github-repos:v1";
 const SCREENSHOT_CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -97,10 +112,9 @@ const readCachedRepos = () => {
 
     try {
         const cached = JSON.parse(window.localStorage.getItem(REPO_CACHE_KEY) || "null");
-        const portfolioRepoNames = new Set(projects.map(getProjectRepoName).filter(Boolean));
         return Array.isArray(cached?.repos)
             ? cached.repos
-                .filter((repo) => repo?.name && portfolioRepoNames.has(repo.name.toLowerCase()))
+                .filter((repo) => repo?.name)
                 .map((repo) => ({
                     ...repo,
                     topics: Array.isArray(repo.topics) ? repo.topics : [],
@@ -162,15 +176,17 @@ const fetchPortfolioRepos = async (signal, cachedRepos) => {
     if (!response.ok) throw new Error("Unable to load GitHub repositories");
 
     const githubRepos = await response.json();
-    const portfolioRepoNames = new Set(projects.map(getProjectRepoName).filter(Boolean));
     const repos = githubRepos
-        .filter((repo) => portfolioRepoNames.has(repo.name.toLowerCase()))
+        .filter((repo) => repo?.name)
         .map((repo) => ({
             name: repo.name,
             pushedAt: repo.pushed_at,
             updatedAt: repo.updated_at,
             createdAt: repo.created_at,
             language: repo.language,
+            description: repo.description || "",
+            htmlUrl: repo.html_url,
+            homepage: repo.homepage,
             topics: Array.isArray(repo.topics) ? repo.topics : [],
             defaultBranch: repo.default_branch,
         }));
@@ -254,9 +270,48 @@ const Home = () => {
         [repoUpdates],
     );
     const featuredProject = useMemo(
-        () => projects.find((project) => getProjectRepoName(project) === latestRepo?.name.toLowerCase()) || defaultFeaturedProject,
+        () => {
+            const listedProject = projects.find(
+                (project) => getProjectRepoName(project) === latestRepo?.name.toLowerCase(),
+            );
+            if (listedProject) return listedProject;
+            if (!latestRepo) return defaultFeaturedProject;
+
+            const tech = [...new Set([latestRepo.language, ...latestRepo.topics].filter(Boolean))].slice(0, 5);
+            return {
+                name: latestRepo.name,
+                desc: latestRepo.description || "A recently updated project from my GitHub profile.",
+                tech: tech.length ? tech : ["Open source"],
+                live: latestRepo.homepage || latestRepo.htmlUrl || `https://github.com/${GITHUB_OWNER}/${latestRepo.name}`,
+                code: [{ label: "Repo", url: latestRepo.htmlUrl || `https://github.com/${GITHUB_OWNER}/${latestRepo.name}` }],
+            };
+        },
         [latestRepo],
     );
+    const showcaseCollections = useMemo(() => {
+        const reposByName = new Map(repoUpdates.map((repo) => [repo.name.toLowerCase(), repo]));
+        const listedNames = new Set(projects.map((project) => project.name));
+
+        return projectCollections.map((collection) => {
+            const collectionProjects = collection.projects
+                .map((name) => projects.find((project) => project.name === name))
+                .filter(Boolean);
+
+            if (collection.id === "apps" && latestRepo && !listedNames.has(featuredProject.name)) {
+                collectionProjects.unshift(featuredProject);
+            }
+
+            const rankedProjects = collectionProjects
+                .map((project, index) => ({
+                    project,
+                    index,
+                    repo: reposByName.get(getProjectRepoName(project)),
+                }))
+                .sort((a, b) => getRepoTimestamp(b.repo) - getRepoTimestamp(a.repo) || b.index - a.index);
+
+            return { ...collection, projects: rankedProjects };
+        });
+    }, [featuredProject, latestRepo, repoUpdates]);
     const heroScreenshot = latestRepo?.screenshotUrl;
     const visibleHeroImage = heroScreenshot && failedScreenshot !== heroScreenshot
         ? heroScreenshot
@@ -379,9 +434,68 @@ const Home = () => {
                     </div>
                 </section>
 
+                <section className={styles.showcaseGrid} aria-label="Project collections">
+                    {showcaseCollections.map((collection) => (
+                        <section className={styles.showcasePanel} key={collection.id}>
+                            <header className={styles.showcaseHeader}>
+                                <div className={styles.showcaseHeading}>
+                                    <h2>{collection.title}</h2>
+                                    <p>{collection.subtitle}</p>
+                                </div>
+                                <a className={styles.showcaseAll} href="#projects-index">
+                                    View all <span aria-hidden="true">↗</span>
+                                </a>
+                            </header>
+
+                            <ol className={styles.showcaseList}>
+                                {collection.projects.map(({ project, repo }, index) => {
+                                    const projectUrl = project.live || project.code?.[0]?.url || "#projects-index";
+                                    const updatedAt = repo?.updatedAt || repo?.pushedAt;
+                                    const coverHue = (index * 43 + (collection.id === "apps" ? 12 : 150)) % 360;
+
+                                    return (
+                                        <li key={`${collection.id}-${project.name}`}>
+                                            <a
+                                                className={styles.showcaseRow}
+                                                href={projectUrl}
+                                                target={projectUrl.startsWith("#") ? undefined : "_blank"}
+                                                rel={projectUrl.startsWith("#") ? undefined : "noopener noreferrer"}
+                                            >
+                                                <span className={styles.showcaseRank} aria-hidden="true">
+                                                    {String(index + 1).padStart(2, "0")}
+                                                </span>
+                                                <span
+                                                    className={styles.showcaseThumb}
+                                                    style={{ "--cover-hue": coverHue }}
+                                                    aria-hidden="true"
+                                                >
+                                                    {project.name.trim().charAt(0).toUpperCase()}
+                                                </span>
+                                                <span className={styles.showcaseInfo}>
+                                                    <strong title={project.name}>{project.name}</strong>
+                                                    <span>
+                                                        {updatedAt
+                                                            ? `Updated ${formatRepoDate(updatedAt)}`
+                                                            : project.tech.slice(0, 2).join(" · ")}
+                                                    </span>
+                                                </span>
+                                                <span className={styles.showcaseTags} aria-label="Technologies">
+                                                    {project.tech.slice(0, 2).map((tech) => (
+                                                        <span key={tech}>{tech}</span>
+                                                    ))}
+                                                </span>
+                                            </a>
+                                        </li>
+                                    );
+                                })}
+                            </ol>
+                        </section>
+                    ))}
+                </section>
+
                 <div className={styles.head}>
                     <div>
-                        <h2 className={styles.title}>Projects Index</h2>
+                        <h2 className={styles.title} id="projects-index">Projects Index</h2>
                         <p className={styles.sub}>Search by name, description, or tech stack</p>
                     </div>
                     <input
