@@ -63,8 +63,16 @@
         box-shadow: 0 18px 50px rgb(0 0 0 / 16%);
     }
 
+    .searchControls {
+        display: flex;
+        align-items: flex-end;
+        gap: 18px;
+    }
+
     .searchBox {
         display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
         min-height: 58px;
         align-items: center;
         gap: 13px;
@@ -301,8 +309,10 @@
 
     .filterRow {
         display: flex;
+        flex: 0 0 auto;
         align-items: flex-end;
         flex-wrap: wrap;
+        justify-content: flex-end;
         gap: 12px;
     }
 
@@ -634,6 +644,12 @@
 
         .searchPanel {
             padding: 14px;
+        }
+
+        .searchControls {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 14px;
         }
 
         .filterRow {

@@ -267,53 +267,55 @@ const Search = () => {
             </section>
 
             <section className={styles.searchPanel} aria-label="Repository search and filters">
-                <div className={styles.searchBox}>
-                    <FiSearch aria-hidden="true" />
-                    <input
-                        type="search"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        onKeyDown={(event) => {
-                            if (event.key === "Escape") setQuery("");
-                        }}
-                        placeholder="Search repositories, technologies, or keywords..."
-                        aria-label="Search repositories, technologies, or keywords"
-                    />
-                    {query && (
-                        <button
-                            className={styles.clearSearch}
-                            type="button"
-                            onClick={() => setQuery("")}
-                            aria-label="Clear search"
-                        >
-                            <FiX aria-hidden="true" />
+                <div className={styles.searchControls}>
+                    <div className={styles.searchBox}>
+                        <FiSearch aria-hidden="true" />
+                        <input
+                            type="search"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === "Escape") setQuery("");
+                            }}
+                            placeholder="Search repositories, technologies, or keywords..."
+                            aria-label="Search repositories, technologies, or keywords"
+                        />
+                        {query && (
+                            <button
+                                className={styles.clearSearch}
+                                type="button"
+                                onClick={() => setQuery("")}
+                                aria-label="Clear search"
+                            >
+                                <FiX aria-hidden="true" />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className={styles.filterRow}>
+                        <label className={styles.selectControl}>
+                            <span><FiCode aria-hidden="true" /> Technology</span>
+                            <select value={techStack} onChange={(event) => setTechStack(event.target.value)}>
+                                <option value="all">All technologies</option>
+                                {techStacks.map((stack) => (
+                                    <option key={stack} value={stack}>{stack}</option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className={styles.selectControl}>
+                            <span><FiFilter aria-hidden="true" /> Sort by</span>
+                            <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}>
+                                <option value="recent">Recently updated</option>
+                                <option value="name-asc">Name: A to Z</option>
+                                <option value="name-desc">Name: Z to A</option>
+                            </select>
+                        </label>
+
+                        <button className={styles.resetButton} type="button" onClick={clearFilters}>
+                            <FiX aria-hidden="true" /> Reset
                         </button>
-                    )}
-                </div>
-
-                <div className={styles.filterRow}>
-                    <label className={styles.selectControl}>
-                        <span><FiCode aria-hidden="true" /> Technology</span>
-                        <select value={techStack} onChange={(event) => setTechStack(event.target.value)}>
-                            <option value="all">All technologies</option>
-                            {techStacks.map((stack) => (
-                                <option key={stack} value={stack}>{stack}</option>
-                            ))}
-                        </select>
-                    </label>
-
-                    <label className={styles.selectControl}>
-                        <span><FiFilter aria-hidden="true" /> Sort by</span>
-                        <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}>
-                            <option value="recent">Recently updated</option>
-                            <option value="name-asc">Name: A to Z</option>
-                            <option value="name-desc">Name: Z to A</option>
-                        </select>
-                    </label>
-
-                    <button className={styles.resetButton} type="button" onClick={clearFilters}>
-                        <FiX aria-hidden="true" /> Reset
-                    </button>
+                    </div>
                 </div>
             </section>
 
