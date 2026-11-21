@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
-import { FiHome, FiMail, FiMenu, FiUser, FiX } from "react-icons/fi";
+import { FiHome, FiMail, FiMenu, FiSearch, FiUser, FiX } from "react-icons/fi";
 import { NavLink, useLocation } from "react-router-dom";
 import styles from "./style.module.css";
 
 const navItems = [
     { label: "Home", to: "/", icon: FiHome },
+    { label: "Search", to: "/search", icon: FiSearch },
     { label: "About", to: "/about", icon: FiUser },
     { label: "Contact", to: "/about#contact", icon: FiMail },
 ];

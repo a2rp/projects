@@ -1,0 +1,94 @@
+export const projects = [
+    {
+        name: "Projects Index",
+        desc: "Directory of all my projects with search and quick links.",
+        tech: ["React", "Vite", "CSS Modules"],
+        live: "https://a2rp.github.io/projects",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/projects" }],
+    },
+    {
+        name: "Public Resume (Releases)",
+        desc: "Versioned resume with a permanent download link.",
+        tech: ["React", "Vite", "Styled Components", "GitHub Releases"],
+        live: "https://a2rp.github.io/resume/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/resume" }],
+    },
+    {
+        name: "Modal/Drawer Pro",
+        desc: "Accessible modal & drawer with nesting (z-stack), ESC/backdrop close, scroll-lock, localStorage, confirm dialog, and toasts.",
+        tech: ["React", "Vite", "Styled Components", "React Toastify"],
+        live: "https://a2rp.github.io/modal-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/modal-pro" }],
+    },
+    {
+        name: "Tooltip Pro",
+        desc: "Dependency-free tooltips & popovers with smart positioning (flip/shift/arrow), hover/focus/click triggers, and accessible ARIA wiring.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/tooltip-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/tooltip-pro" }],
+    },
+    {
+        name: "Tabs Pro",
+        desc: "Accessible tabs with add/close and localStorage persistence (no keyboard shortcuts).",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/tabs-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/tabs-pro" }],
+    },
+    {
+        name: "Accordion Pro",
+        desc: "Click-only accordion (no keyboard controls) with localStorage persistence and expand/collapse helpers.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/accordion-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/accordion-pro" }],
+    },
+    {
+        name: "Dropdown/Menu Pro",
+        desc: "Click-only dropdown with one-level submenu, smart placement (flip & clamp), outside-click close. No portals used.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/dropdown-pro/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/dropdown-pro" }],
+    },
+    {
+        name: "KYC Verification",
+        desc: "React KYC verification UI with styled-components, RHF+Yup validation, image preview & clear, header actions, toasts, and localStorage draft save.",
+        tech: ["React", "Vite", "Styled Components", "React Hook Form", "Yup", "React Toastify"],
+        live: "https://a2rp.github.io/kyc-verification/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/kyc-verification" }],
+    },
+    {
+        name: "Blob Generator",
+        desc: "CSS blob generator with size controls, 4-corner radii, gradient angle & colors, live preview, Copy CSS, and Randomize/Reset.",
+        tech: ["React", "Vite", "Styled Components"],
+        live: "https://a2rp.github.io/blob-generator/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/blob-generator" }],
+    },
+    {
+        name: "Blood Bank",
+        desc: "Frontend-only blood bank app: donor search/filters, register form (RHF + Zod), contact messages with confirm modal, donor details modal with edit, dark/light theme, localStorage persistence.",
+        tech: ["React", "Vite", "Styled Components", "React Router", "React Hook Form", "Zod"],
+        live: "https://a2rp.github.io/blood-bank/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/blood-bank" }],
+    },
+    {
+        name: "HealthPro - BMI",
+        desc: "Advanced BMI calculator with unit conversions (kg/lb, cm or ft+in), WHO categories (incl. Class I-III), healthy weight range, i18n (EN/HI), history & CSV export. Self-made confirm modals, accessible form, and localStorage persistence.",
+        tech: ["React", "Vite", "Styled Components", "React Router", "Tolgee (i18n)"],
+        live: "https://a2rp.github.io/bmi-calculator/",
+        code: [{ label: "Repo", url: "https://github.com/a2rp/bmi-calculator" }],
+    },
+];
+
+export const projectCollections = [
+    {
+        id: "apps",
+        title: "Apps & experiences",
+        subtitle: "Full projects built to solve real problems",
+        projects: ["Projects Index", "Public Resume (Releases)", "KYC Verification", "Blood Bank", "HealthPro - BMI"],
+    },
+    {
+        id: "interfaces",
+        title: "UI components & tools",
+        subtitle: "Reusable interfaces and interactive experiments",
+        projects: ["Modal/Drawer Pro", "Tooltip Pro", "Tabs Pro", "Accordion Pro", "Dropdown/Menu Pro", "Blob Generator"],
+    },
+];
