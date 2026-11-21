@@ -158,6 +158,30 @@ const Search = () => {
                 </p>
             </header>
 
+            <section className={styles.topicSection} aria-label="Filter by repository topic">
+                <label className={styles.topicLabel} htmlFor="repository-topic-filter">
+                    <span>Filter by topic</span>
+                    <small>{topics.length} repository topics</small>
+                </label>
+                <div className={styles.topicSelectControl}>
+                    <select
+                        id="repository-topic-filter"
+                        value={topicFilter}
+                        onChange={(event) => setTopicFilter(event.target.value)}
+                    >
+                        <option value="all">All topics</option>
+                        {topics.map(({ topic, label, count }) => (
+                            <option key={topic} value={topic}>
+                                {label} ({count.toLocaleString()})
+                            </option>
+                        ))}
+                    </select>
+                    <span className={styles.topicSelectedCount} aria-live="polite">
+                        {selectedTopicCount.toLocaleString()} {selectedTopicCount === 1 ? "repo" : "repos"}
+                    </span>
+                </div>
+            </section>
+
             <section className={styles.searchPanel} aria-label="Repository search and filters">
                 <div className={styles.searchBox}>
                     <FiSearch aria-hidden="true" />
@@ -181,30 +205,6 @@ const Search = () => {
                             <FiX aria-hidden="true" />
                         </button>
                     )}
-                </div>
-
-                <div className={styles.topicSection}>
-                    <label className={styles.topicLabel} htmlFor="repository-topic-filter">
-                        <span>Filter by topic</span>
-                        <small>{topics.length} repository topics</small>
-                    </label>
-                    <div className={styles.topicSelectControl}>
-                        <select
-                            id="repository-topic-filter"
-                            value={topicFilter}
-                            onChange={(event) => setTopicFilter(event.target.value)}
-                        >
-                            <option value="all">All topics</option>
-                            {topics.map(({ topic, label, count }) => (
-                                <option key={topic} value={topic}>
-                                    {label} ({count.toLocaleString()})
-                                </option>
-                            ))}
-                        </select>
-                        <span className={styles.topicSelectedCount} aria-live="polite">
-                            {selectedTopicCount.toLocaleString()} {selectedTopicCount === 1 ? "repo" : "repos"}
-                        </span>
-                    </div>
                 </div>
 
                 <div className={styles.filterRow}>
