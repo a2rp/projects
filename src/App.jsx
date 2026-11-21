@@ -1,5 +1,5 @@
 import styles from "./style.module.css";
-import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTop from "./components/scrollToTop";
 import AppRoutes from "./AppRoutes";
 import Header from "./components/header";
 import Footer from "./components/footer";
