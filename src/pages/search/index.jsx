@@ -34,19 +34,6 @@ const featuredProjectByRepoName = new Map(
 
 const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
 
-const getTopicLabel = (topic) => topic
-    .replaceAll("_", "-")
-    .split("-")
-    .map((word) => {
-        const lower = word.toLowerCase();
-        if (lower === "4k") return "4K";
-        if (lower === "tv") return "TV";
-        if (lower === "ui") return "UI";
-        if (lower === "api") return "API";
-        return lower.charAt(0).toUpperCase() + lower.slice(1);
-    })
-    .join("-");
-
 const Search = () => {
     const [query, setQuery] = useState("");
     const [category, setCategory] = useState("all");
@@ -94,14 +81,22 @@ const Search = () => {
     const topics = useMemo(() => {
         const counts = new Map();
         githubRepos.forEach((repo) => {
-            toUniqueList(repo.topics || []).forEach((topic) => {
+            const seenTopics = new Set();
+            (repo.topics || []).forEach((topic) => {
                 const normalizedTopic = topic.toLowerCase();
-                counts.set(normalizedTopic, (counts.get(normalizedTopic) || 0) + 1);
+                if (seenTopics.has(normalizedTopic)) return;
+                seenTopics.add(normalizedTopic);
+
+                const current = counts.get(normalizedTopic);
+                if (current) {
+                    current.count += 1;
+                } else {
+                    counts.set(normalizedTopic, { topic: normalizedTopic, label: topic, count: 1 });
+                }
             });
         });
 
-        return [...counts.entries()]
-            .map(([topic, count]) => ({ topic, label: getTopicLabel(topic), count }))
+        return [...counts.values()]
             .sort((first, second) => first.label.localeCompare(second.label));
     }, [githubRepos]);
 
@@ -200,8 +195,10 @@ const Search = () => {
                             onChange={(event) => setTopicFilter(event.target.value)}
                         >
                             <option value="all">All topics</option>
-                            {topics.map(({ topic, label }) => (
-                                <option key={topic} value={topic}>{label}</option>
+                            {topics.map(({ topic, label, count }) => (
+                                <option key={topic} value={topic}>
+                                    {label} ({count.toLocaleString()})
+                                </option>
                             ))}
                         </select>
                         <span className={styles.topicSelectedCount} aria-live="polite">
