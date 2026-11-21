@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import heroImage from "../../assets/default-project-hero.webp";
 import {
     GITHUB_OWNER,
@@ -23,7 +24,6 @@ const formatRepoDate = (value) => {
 };
 
 const Home = () => {
-    const [q, setQ] = useState("");
     const [failedScreenshot, setFailedScreenshot] = useState("");
     const { repos: repoUpdates, screenshots } = useGitHubPortfolio();
 
@@ -81,24 +81,6 @@ const Home = () => {
         ? heroScreenshot
         : heroImage;
     const updatedDate = formatRepoDate(latestRepo?.pushedAt || latestRepo?.updatedAt);
-
-    const filtered = useMemo(() => {
-        const v = q.trim().toLowerCase();
-        if (!v) return projects;
-        return projects.filter((p) => {
-            const hay =
-                (p.name || "") +
-                " " +
-                (p.desc || "") +
-                " " +
-                (Array.isArray(p.tech) ? p.tech.join(" ") : "") +
-                " " +
-                (Array.isArray(p.code) ? p.code.map((c) => c.label).join(" ") : "");
-            return hay.toLowerCase().includes(v);
-        });
-    }, [q]);
-
-    const list = useMemo(() => [...filtered].reverse(), [filtered]);
 
     return (
         <>
@@ -206,14 +188,14 @@ const Home = () => {
                                     <h2>{collection.title}</h2>
                                     <p>{collection.subtitle}</p>
                                 </div>
-                                <a className={styles.showcaseAll} href="#projects-index">
+                                <Link className={styles.showcaseAll} to="/search">
                                     View all <span aria-hidden="true">↗</span>
-                                </a>
+                                </Link>
                             </header>
 
                             <ol className={styles.showcaseList}>
                                 {collection.projects.map(({ project, repo }, index) => {
-                                    const projectUrl = project.live || project.code?.[0]?.url || "#projects-index";
+                                    const projectUrl = project.live || project.code?.[0]?.url || "https://github.com/a2rp";
                                     const updatedAt = repo?.updatedAt || repo?.pushedAt;
                                     const coverHue = (index * 43 + (collection.id === "apps" ? 12 : 150)) % 360;
 
@@ -256,73 +238,6 @@ const Home = () => {
                         </section>
                     ))}
                 </section>
-
-                <div className={styles.head}>
-                    <div>
-                        <h2 className={styles.title} id="projects-index">Projects Index</h2>
-                        <p className={styles.sub}>Search by name, description, or tech stack</p>
-                    </div>
-                    <input
-                        className={styles.search}
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                        placeholder="Search projects…"
-                    />
-                </div>
-
-                {filtered.length > 0 ? (
-                    <div className={styles.tableWrapper}>
-                        <table className={styles.table}>
-                            <thead>
-                                <tr>
-                                    <th style={{ width: 56 }}>#</th>
-                                    <th>Project Name</th>
-                                    <th>Project Description</th>
-                                    <th>Tech Stack</th>
-                                    <th>Live Link</th>
-                                    <th>GitHub Code</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {list.map((p, i) => (
-                                    <tr key={p.name + i}>
-                                        <td>{String(list.length - i).padStart(3, "0")}</td>
-                                        <td>{p.name}</td>
-                                        <td>{p.desc}</td>
-                                        <td>
-                                            <div className={styles.tags}>
-                                                {(p.tech || []).map((t) => (
-                                                    <span className={styles.tag} key={t}>{t}</span>
-                                                ))}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {p.live ? (
-                                                <a href={p.live} target="_blank" rel="noopener noreferrer">Open</a>
-                                            ) : "-"}
-                                        </td>
-                                        <td>
-                                            {(p.code || []).length
-                                                ? p.code.map((c, idx) => (
-                                                    <React.Fragment key={c.url}>
-                                                        <a href={c.url} target="_blank" rel="noopener noreferrer">
-                                                            {c.label || "Repo"}
-                                                        </a>
-                                                        {idx < p.code.length - 1 ? " · " : ""}
-                                                    </React.Fragment>
-                                                ))
-                                                : "-"}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <div style={{ width: "100%", padding: 15, textAlign: "center", backgroundColor: "#0f1320", borderRadius: 6 }}>
-                        No project found
-                    </div>
-                )}
 
             </div>
         </>
