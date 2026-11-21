@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
     FiArrowUpRight,
     FiChevronDown,
+    FiChevronLeft,
+    FiChevronRight,
     FiCode,
     FiExternalLink,
     FiFilter,
@@ -29,6 +31,23 @@ const featuredProjectByRepoName = new Map(
 );
 
 const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
+const RESULTS_PER_PAGE = 12;
+
+const getPaginationItems = (currentPage, totalPages) => {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+
+    const pages = new Set([1, totalPages]);
+    for (let page = Math.max(1, currentPage - 1); page <= Math.min(totalPages, currentPage + 1); page += 1) {
+        pages.add(page);
+    }
+
+    const sortedPages = [...pages].sort((first, second) => first - second);
+    return sortedPages.reduce((items, page, index) => {
+        if (index > 0 && page - sortedPages[index - 1] > 1) items.push("ellipsis");
+        items.push(page);
+        return items;
+    }, []);
+};
 
 const Search = () => {
     const [query, setQuery] = useState("");
@@ -36,10 +55,12 @@ const Search = () => {
     const [topicFilter, setTopicFilter] = useState("all");
     const [topicMenuOpen, setTopicMenuOpen] = useState(false);
     const [sortOrder, setSortOrder] = useState("recent");
+    const [currentPage, setCurrentPage] = useState(1);
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
     const topicDropdownRef = useRef(null);
     const topicTriggerRef = useRef(null);
     const topicOptionRefs = useRef([]);
+    const resultsSectionRef = useRef(null);
     const { repos: githubRepos, screenshots, publicRepoCount } = useGitHubPortfolio();
 
     const repositories = useMemo(() => {
@@ -171,11 +192,28 @@ const Search = () => {
             });
     }, [query, repositories, sortOrder, techStack, topicFilter]);
 
+    const totalPages = Math.max(1, Math.ceil(results.length / RESULTS_PER_PAGE));
+    const activePage = Math.min(currentPage, totalPages);
+    const pageStart = results.length ? (activePage - 1) * RESULTS_PER_PAGE + 1 : 0;
+    const pageEnd = Math.min(activePage * RESULTS_PER_PAGE, results.length);
+    const paginatedResults = results.slice(pageStart - 1, pageEnd);
+    const paginationItems = getPaginationItems(activePage, totalPages);
+
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+    }, [currentPage, totalPages]);
+
+    const goToPage = (page) => {
+        setCurrentPage(page);
+        resultsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
     const clearFilters = () => {
         setQuery("");
         setTechStack("all");
         setTopicFilter("all");
         setSortOrder("recent");
+        setCurrentPage(1);
     };
 
     return (
@@ -244,6 +282,7 @@ const Search = () => {
                                         }}
                                         onClick={() => {
                                             setTopicFilter(topic);
+                                            setCurrentPage(1);
                                             setTopicMenuOpen(false);
                                             topicTriggerRef.current?.focus();
                                         }}
@@ -273,9 +312,15 @@ const Search = () => {
                         <input
                             type="search"
                             value={query}
-                            onChange={(event) => setQuery(event.target.value)}
+                            onChange={(event) => {
+                                setQuery(event.target.value);
+                                setCurrentPage(1);
+                            }}
                             onKeyDown={(event) => {
-                                if (event.key === "Escape") setQuery("");
+                                if (event.key === "Escape") {
+                                    setQuery("");
+                                    setCurrentPage(1);
+                                }
                             }}
                             placeholder="Search repositories, technologies, or keywords..."
                             aria-label="Search repositories, technologies, or keywords"
@@ -284,7 +329,10 @@ const Search = () => {
                             <button
                                 className={styles.clearSearch}
                                 type="button"
-                                onClick={() => setQuery("")}
+                                onClick={() => {
+                                    setQuery("");
+                                    setCurrentPage(1);
+                                }}
                                 aria-label="Clear search"
                             >
                                 <FiX aria-hidden="true" />
@@ -295,7 +343,10 @@ const Search = () => {
                     <div className={styles.filterRow}>
                         <label className={styles.selectControl}>
                             <span><FiCode aria-hidden="true" /> Technology</span>
-                            <select value={techStack} onChange={(event) => setTechStack(event.target.value)}>
+                            <select value={techStack} onChange={(event) => {
+                                setTechStack(event.target.value);
+                                setCurrentPage(1);
+                            }}>
                                 <option value="all">All technologies</option>
                                 {techStacks.map((stack) => (
                                     <option key={stack} value={stack}>{stack}</option>
@@ -305,7 +356,10 @@ const Search = () => {
 
                         <label className={styles.selectControl}>
                             <span><FiFilter aria-hidden="true" /> Sort by</span>
-                            <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}>
+                            <select value={sortOrder} onChange={(event) => {
+                                setSortOrder(event.target.value);
+                                setCurrentPage(1);
+                            }}>
                                 <option value="recent">Recently updated</option>
                                 <option value="name-asc">Name: A to Z</option>
                                 <option value="name-desc">Name: Z to A</option>
@@ -319,20 +373,27 @@ const Search = () => {
                 </div>
             </section>
 
-            <section className={styles.resultsSection} aria-labelledby="results-heading">
+            <section
+                className={styles.resultsSection}
+                aria-labelledby="results-heading"
+                ref={resultsSectionRef}
+            >
                 <div className={styles.resultsHeading}>
                     <div>
                         <h2 id="results-heading">Repositories</h2>
                         <p aria-live="polite">
-                            {results.length.toLocaleString()} {results.length === 1 ? "repository" : "repositories"} found
+                            {results.length
+                                ? `Showing ${pageStart.toLocaleString()}–${pageEnd.toLocaleString()} of ${results.length.toLocaleString()} repositories`
+                                : "0 repositories found"}
                         </p>
                     </div>
                     <span className={styles.resultsCount}>{results.length.toLocaleString()}</span>
                 </div>
 
                 {results.length ? (
+                    <>
                     <div className={styles.resultsGrid}>
-                        {results.map((repository, index) => {
+                        {paginatedResults.map((repository, index) => {
                             const source = repository.code?.find((item) => item.url);
                             const repoName = repository.repoName || getProjectRepoName(repository);
                             const screenshotUrl = screenshots[repoName];
@@ -355,7 +416,7 @@ const Search = () => {
                                     />
                                     <div className={styles.cardMeta}>
                                         <span>{repository.category?.title || "Public repository"}</span>
-                                        <span>{String(index + 1).padStart(2, "0")}</span>
+                                        <span>{String(pageStart + index).padStart(2, "0")}</span>
                                     </div>
                                     <h3>{repository.name}</h3>
                                     <p className={styles.projectDescription}>{repository.desc}</p>
@@ -385,6 +446,54 @@ const Search = () => {
                             );
                         })}
                     </div>
+                    {totalPages > 1 && (
+                        <nav className={styles.pagination} aria-label="Repository result pages">
+                            <span className={styles.pageIndicator}>
+                                Page {activePage} of {totalPages}
+                            </span>
+                            <div className={styles.paginationControls}>
+                                <button
+                                    className={styles.pageStep}
+                                    type="button"
+                                    disabled={activePage === 1}
+                                    onClick={() => goToPage(activePage - 1)}
+                                    aria-label="Previous page"
+                                >
+                                    <FiChevronLeft aria-hidden="true" />
+                                    <span>Previous</span>
+                                </button>
+                                <div className={styles.pageNumbers}>
+                                    {paginationItems.map((page, index) => page === "ellipsis" ? (
+                                        <span className={styles.pageEllipsis} key={`ellipsis-${index}`} aria-hidden="true">
+                                            …
+                                        </span>
+                                    ) : (
+                                        <button
+                                            className={activePage === page ? styles.pageActive : styles.pageButton}
+                                            type="button"
+                                            key={page}
+                                            aria-label={`Page ${page}`}
+                                            aria-current={activePage === page ? "page" : undefined}
+                                            onClick={() => goToPage(page)}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    className={styles.pageStep}
+                                    type="button"
+                                    disabled={activePage === totalPages}
+                                    onClick={() => goToPage(activePage + 1)}
+                                    aria-label="Next page"
+                                >
+                                    <span>Next</span>
+                                    <FiChevronRight aria-hidden="true" />
+                                </button>
+                            </div>
+                        </nav>
+                    )}
+                    </>
                 ) : (
                     <div className={styles.emptyState}>
                         <span className={styles.emptyIcon}><FiSearch aria-hidden="true" /></span>

@@ -390,6 +390,8 @@
     }
 
     .resultsSection {
+        scroll-margin-top: 96px;
+
         .resultsHeading {
             display: flex;
             align-items: center;
@@ -424,6 +426,85 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 14px;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid #1d2923;
+
+        .pageIndicator {
+            color: #84938a;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .paginationControls,
+        .pageNumbers {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pageStep,
+        .pageButton,
+        .pageActive {
+            display: inline-flex;
+            min-width: 36px;
+            min-height: 36px;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 10px;
+            border: 1px solid #293830;
+            border-radius: 9px;
+            background: #0b100e;
+            color: #b6c4bb;
+            font: inherit;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+
+            svg {
+                width: 15px;
+                height: 15px;
+            }
+
+            &:hover:not(:disabled),
+            &:focus-visible {
+                border-color: #5a8067;
+                background: #132119;
+                color: #e7f3e9;
+            }
+
+            &:focus-visible {
+                outline: 2px solid #83c99f;
+                outline-offset: 2px;
+            }
+
+            &:disabled {
+                opacity: 0.42;
+                cursor: not-allowed;
+            }
+        }
+
+        .pageActive {
+            border-color: #76b88c;
+            background: #1a3323;
+            color: #c2f0ce;
+        }
+
+        .pageEllipsis {
+            min-width: 20px;
+            color: #738078;
+            text-align: center;
+        }
     }
 
     .projectCard {
@@ -671,6 +752,12 @@
             flex: 1 1 150px;
         }
 
+        .pagination {
+            align-items: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .resetButton {
             align-self: flex-end;
         }
@@ -694,6 +781,29 @@
 
         .resultsGrid {
             grid-template-columns: 1fr;
+        }
+
+        .pagination {
+            .pageStep span {
+                display: none;
+            }
+
+            .paginationControls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .pageNumbers {
+                gap: 3px;
+            }
+
+            .pageStep,
+            .pageButton,
+            .pageActive {
+                min-width: 32px;
+                min-height: 34px;
+                padding: 0 7px;
+            }
         }
 
         .projectCard {
