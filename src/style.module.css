@@ -5,26 +5,30 @@
     overflow: hidden;
     background: #07090d;
     color: #e6e9f0;
-}
 
-.pageScrollArea {
-    position: absolute;
-    top: 72px;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    overflow-y: auto;
-    scrollbar-gutter: stable;
-    overscroll-behavior-y: contain;
-}
+    .pageScrollArea {
+        position: absolute;
+        top: 72px;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        scrollbar-gutter: stable;
+        overscroll-behavior-y: contain;
 
-.main {
-    min-height: 100%;
-    padding: 40px 32px 48px;
+        .main {
+            min-height: 100%;
+            padding: 40px 32px 48px;
+        }
+    }
 }
 
 @media (max-width: 720px) {
-    .main {
-        padding: 28px 16px 36px;
+    .wrapper {
+        .pageScrollArea {
+            .main {
+                padding: 28px 16px 36px;
+            }
+        }
     }
 }
