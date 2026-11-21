@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiHome, FiMail, FiMenu, FiUser, FiX } from "react-icons/fi";
 import { NavLink, useLocation } from "react-router-dom";
 import styles from "./style.module.css";
 
 const navItems = [
-    { label: "Home", to: "/" },
-    { label: "About", to: "/about" },
-    { label: "Contact", to: "/about#contact" },
+    { label: "Home", to: "/", icon: FiHome },
+    { label: "About", to: "/about", icon: FiUser },
+    { label: "Contact", to: "/about#contact", icon: FiMail },
 ];
 
 const repositoryUrl = "https://github.com/a2rp/projects";
@@ -53,20 +53,23 @@ const Header = () => {
                     className={styles.headerNav}
                     aria-label="Primary navigation"
                 >
-                    {navItems.map((item) => (
-                        <NavLink
-                            className={({ isActive }) =>
-                                isActive
-                                    ? styles.activeNavLink
-                                    : styles.navLink
-                            }
-                            key={item.to}
-                            to={item.to}
-                            end={item.to === "/"}
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))}
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                            <NavLink
+                                className={({ isActive }) =>
+                                    isActive ? styles.activeNavLink : styles.navLink
+                                }
+                                key={item.to}
+                                to={item.to}
+                                end={item.to === "/"}
+                            >
+                                <Icon aria-hidden="true" />
+                                <span>{item.label}</span>
+                            </NavLink>
+                        );
+                    })}
                 </nav>
 
                 <div className={styles.headerActions}>
@@ -93,34 +96,37 @@ const Header = () => {
                     </div>
                 </div>
             </div>
-
             <div
                 className={`${styles.menuBackdrop} ${menuOpen ? styles.menuBackdropOpen : ""}`}
                 aria-hidden="true"
                 onClick={() => setMenuOpen(false)}
             />
-
             <nav
                 className={`${styles.menuSlider} ${menuOpen ? styles.menuSliderOpen : ""}`}
                 id="header-menu"
                 aria-label="Menu navigation"
                 aria-hidden={!menuOpen}
             >
-                {navItems.map((item) => (
-                    <NavLink
-                        className={({ isActive }) =>
-                            isActive
-                                ? styles.activeMobileNavLink
-                                : styles.mobileNavLink
-                        }
-                        key={item.to}
-                        to={item.to}
-                        end={item.to === "/"}
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        {item.label}
-                    </NavLink>
-                ))}
+                {navItems.map((item) => {
+                    const Icon = item.icon;
+
+                    return (
+                        <NavLink
+                            className={({ isActive }) =>
+                                isActive
+                                    ? styles.activeMobileNavLink
+                                    : styles.mobileNavLink
+                            }
+                            key={item.to}
+                            to={item.to}
+                            end={item.to === "/"}
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            <Icon aria-hidden="true" />
+                            <span>{item.label}</span>
+                        </NavLink>
+                    );
+                })}
                 <a
                     className={styles.mobileNavLink}
                     href={repositoryUrl}
