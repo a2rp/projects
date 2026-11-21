@@ -31,6 +31,7 @@ const featuredProjectByRepoName = new Map(
 );
 
 const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
+const excludedRepositoryNames = new Set(["a2rp"]);
 
 const getPaginationItems = (currentPage, totalPages) => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
@@ -61,11 +62,16 @@ const Search = () => {
     const topicTriggerRef = useRef(null);
     const topicOptionRefs = useRef([]);
     const resultsSectionRef = useRef(null);
-    const { repos: githubRepos, screenshots, publicRepoCount } = useGitHubPortfolio();
+    const { repos: githubRepos, screenshots } = useGitHubPortfolio();
+
+    const visibleGithubRepos = useMemo(
+        () => githubRepos.filter((repo) => !excludedRepositoryNames.has(repo.name.toLowerCase())),
+        [githubRepos],
+    );
 
     const repositories = useMemo(() => {
         const repoNames = new Set();
-        const liveRepositories = githubRepos.map((repo, index) => {
+        const liveRepositories = visibleGithubRepos.map((repo, index) => {
             const repoName = repo.name.toLowerCase();
             const featured = featuredProjectByRepoName.get(repoName);
             repoNames.add(repoName);
@@ -85,7 +91,10 @@ const Search = () => {
         });
 
         const featuredFallbacks = projects
-            .filter((project) => !repoNames.has(getProjectRepoName(project)))
+            .filter((project) => {
+                const repoName = getProjectRepoName(project);
+                return !excludedRepositoryNames.has(repoName) && !repoNames.has(repoName);
+            })
             .map((project, index) => ({
                 ...project,
                 topics: [],
@@ -96,11 +105,11 @@ const Search = () => {
             }));
 
         return [...liveRepositories, ...featuredFallbacks];
-    }, [githubRepos]);
+    }, [visibleGithubRepos]);
 
     const topics = useMemo(() => {
         const counts = new Map();
-        githubRepos.forEach((repo) => {
+        visibleGithubRepos.forEach((repo) => {
             const seenTopics = new Set();
             (repo.topics || []).forEach((topic) => {
                 const normalizedTopic = topic.toLowerCase();
@@ -118,14 +127,14 @@ const Search = () => {
 
         return [...counts.values()]
             .sort((first, second) => first.label.localeCompare(second.label));
-    }, [githubRepos]);
+    }, [visibleGithubRepos]);
 
     const techStacks = useMemo(() => toUniqueList(
         repositories.flatMap((repository) => repository.tech || []),
     ).sort((first, second) => first.localeCompare(second)), [repositories]);
 
     const selectedTopicCount = topicFilter === "all"
-        ? publicRepoCount
+        ? visibleGithubRepos.length
         : topics.find(({ topic }) => topic === topicFilter)?.count || 0;
     const topicOptions = [{ topic: "all", label: "All topics" }, ...topics];
     const selectedTopicIndex = Math.max(0, topicOptions.findIndex(({ topic }) => topic === topicFilter));
@@ -223,7 +232,7 @@ const Search = () => {
                 <div className={styles.introHeading}>
                     <h1><span aria-hidden="true" />Repositories</h1>
                     <span className={styles.introCount}>
-                        {publicRepoCount.toLocaleString()} PUBLIC REPOSITORIES
+                        {visibleGithubRepos.length.toLocaleString()} PUBLIC REPOSITORIES
                     </span>
                 </div>
                 <p className={styles.introCopy}>
