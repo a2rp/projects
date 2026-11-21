@@ -10,12 +10,15 @@ import {
 } from "react-icons/fi";
 import defaultProjectImage from "../../assets/default-project-hero.webp";
 import { projectCollections, projects } from "../../data/projects";
-import { getProjectRepoName } from "../../data/githubPortfolio";
+import {
+    getProjectRepoName,
+    getRepoTimestamp,
+} from "../../data/githubPortfolio";
 import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
 import styles from "./style.module.css";
 
 const categories = [
-    { id: "all", label: "All projects" },
+    { id: "all", label: "All repositories" },
     ...projectCollections.map(({ id, title }) => ({ id, label: title })),
 ];
 
@@ -25,51 +28,120 @@ const projectCategoryByName = new Map(
     ),
 );
 
-const techStacks = [...new Set(projects.flatMap((project) => project.tech || []))]
-    .sort((first, second) => first.localeCompare(second));
+const featuredProjectByRepoName = new Map(
+    projects.map((project) => [getProjectRepoName(project), project]),
+);
+
+const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
+
+const getTopicLabel = (topic) => topic
+    .replaceAll("_", "-")
+    .split("-")
+    .map((word) => {
+        const lower = word.toLowerCase();
+        if (lower === "4k") return "4K";
+        if (lower === "tv") return "TV";
+        if (lower === "ui") return "UI";
+        if (lower === "api") return "API";
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join("-");
 
 const Search = () => {
     const [query, setQuery] = useState("");
     const [category, setCategory] = useState("all");
     const [techStack, setTechStack] = useState("all");
+    const [topicFilter, setTopicFilter] = useState("all");
     const [sortOrder, setSortOrder] = useState("recent");
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
-    const { screenshots, publicRepoCount } = useGitHubPortfolio();
+    const { repos: githubRepos, screenshots, publicRepoCount } = useGitHubPortfolio();
+
+    const repositories = useMemo(() => {
+        const repoNames = new Set();
+        const liveRepositories = githubRepos.map((repo, index) => {
+            const repoName = repo.name.toLowerCase();
+            const featured = featuredProjectByRepoName.get(repoName);
+            repoNames.add(repoName);
+
+            return {
+                name: featured?.name || repo.name,
+                desc: featured?.desc || repo.description || "Public repository by Ashish Ranjan.",
+                tech: toUniqueList([repo.language, ...(featured?.tech || [])]),
+                topics: toUniqueList(repo.topics || []).map((topic) => topic.toLowerCase()),
+                live: repo.homepage || featured?.live || "",
+                code: [{ label: "Repo", url: repo.htmlUrl }],
+                repoName,
+                repo,
+                category: featured ? projectCategoryByName.get(featured.name) : undefined,
+                originalIndex: index,
+            };
+        });
+
+        const featuredFallbacks = projects
+            .filter((project) => !repoNames.has(getProjectRepoName(project)))
+            .map((project, index) => ({
+                ...project,
+                topics: [],
+                repoName: getProjectRepoName(project),
+                repo: null,
+                category: projectCategoryByName.get(project.name),
+                originalIndex: liveRepositories.length + index,
+            }));
+
+        return [...liveRepositories, ...featuredFallbacks];
+    }, [githubRepos]);
+
+    const topics = useMemo(() => {
+        const counts = new Map();
+        githubRepos.forEach((repo) => {
+            toUniqueList(repo.topics || []).forEach((topic) => {
+                const normalizedTopic = topic.toLowerCase();
+                counts.set(normalizedTopic, (counts.get(normalizedTopic) || 0) + 1);
+            });
+        });
+
+        return [...counts.entries()]
+            .map(([topic, count]) => ({ topic, label: getTopicLabel(topic), count }))
+            .sort((first, second) => first.label.localeCompare(second.label));
+    }, [githubRepos]);
+
+    const techStacks = useMemo(() => toUniqueList(
+        repositories.flatMap((repository) => repository.tech || []),
+    ).sort((first, second) => first.localeCompare(second)), [repositories]);
 
     const results = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
 
-        return projects
-            .map((project, index) => ({
-                ...project,
-                originalIndex: index,
-                category: projectCategoryByName.get(project.name),
-            }))
-            .filter((project) => {
+        return repositories
+            .filter((repository) => {
                 const searchableContent = [
-                    project.name,
-                    project.desc,
-                    ...(project.tech || []),
-                    ...(project.code || []).map((source) => source.label),
+                    repository.name,
+                    repository.desc,
+                    ...(repository.tech || []),
+                    ...(repository.topics || []),
+                    ...(repository.code || []).map((source) => source.label),
                 ].join(" ").toLowerCase();
 
                 const matchesQuery = !normalizedQuery || searchableContent.includes(normalizedQuery);
-                const matchesCategory = category === "all" || project.category?.id === category;
-                const matchesTechStack = techStack === "all" || project.tech?.includes(techStack);
+                const matchesCategory = category === "all" || repository.category?.id === category;
+                const matchesTechStack = techStack === "all" || repository.tech?.includes(techStack);
+                const matchesTopic = topicFilter === "all" || repository.topics?.includes(topicFilter);
 
-                return matchesQuery && matchesCategory && matchesTechStack;
+                return matchesQuery && matchesCategory && matchesTechStack && matchesTopic;
             })
             .sort((first, second) => {
                 if (sortOrder === "name-asc") return first.name.localeCompare(second.name);
                 if (sortOrder === "name-desc") return second.name.localeCompare(first.name);
-                return second.originalIndex - first.originalIndex;
+                return getRepoTimestamp(second.repo) - getRepoTimestamp(first.repo)
+                    || first.originalIndex - second.originalIndex;
             });
-    }, [category, query, sortOrder, techStack]);
+    }, [category, query, repositories, sortOrder, techStack, topicFilter]);
 
     const clearFilters = () => {
         setQuery("");
         setCategory("all");
         setTechStack("all");
+        setTopicFilter("all");
         setSortOrder("recent");
     };
 
@@ -77,18 +149,17 @@ const Search = () => {
         <div className={styles.wrapper}>
             <header className={styles.pageIntro}>
                 <div className={styles.introHeading}>
-                    <h1><span aria-hidden="true" />Projects</h1>
+                    <h1><span aria-hidden="true" />Repositories</h1>
                     <span className={styles.introCount}>
                         {publicRepoCount.toLocaleString()} PUBLIC REPOSITORIES
                     </span>
                 </div>
                 <p className={styles.introCopy}>
-                    Explore {publicRepoCount.toLocaleString()} public repositories by Ashish Ranjan.
-                    Search the featured portfolio projects below by name, description, or technology.
+                    Browse public repositories by topic, name, description, or technology.
                 </p>
             </header>
 
-            <section className={styles.searchPanel} aria-label="Project search and filters">
+            <section className={styles.searchPanel} aria-label="Repository search and filters">
                 <div className={styles.searchBox}>
                     <FiSearch aria-hidden="true" />
                     <input
@@ -98,8 +169,8 @@ const Search = () => {
                         onKeyDown={(event) => {
                             if (event.key === "Escape") setQuery("");
                         }}
-                        placeholder="Search projects, technologies, or keywords..."
-                        aria-label="Search projects, technologies, or keywords"
+                        placeholder="Search repositories, technologies, or keywords..."
+                        aria-label="Search repositories, technologies, or keywords"
                     />
                     {query && (
                         <button
@@ -113,8 +184,39 @@ const Search = () => {
                     )}
                 </div>
 
+                <div className={styles.topicSection}>
+                    <div className={styles.topicHeading}>
+                        <h2>Topics</h2>
+                        <span>{topics.length} topics</span>
+                    </div>
+                    <div className={styles.topicFilters} role="group" aria-label="Filter by repository topic">
+                        <button
+                            className={topicFilter === "all" ? styles.topicActive : styles.topicButton}
+                            type="button"
+                            aria-pressed={topicFilter === "all"}
+                            onClick={() => setTopicFilter("all")}
+                        >
+                            <span>All topics</span>
+                            <span className={styles.topicCount}>{githubRepos.length.toLocaleString()}</span>
+                        </button>
+                        {topics.map(({ topic, label, count }) => (
+                            <button
+                                className={topicFilter === topic ? styles.topicActive : styles.topicButton}
+                                key={topic}
+                                type="button"
+                                aria-pressed={topicFilter === topic}
+                                aria-label={`${label}, ${count} ${count === 1 ? "repository" : "repositories"}`}
+                                onClick={() => setTopicFilter(topic)}
+                            >
+                                <span>{label}</span>
+                                <span className={styles.topicCount}>{count.toLocaleString()}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <div className={styles.filterRow}>
-                    <div className={styles.categoryFilters} role="group" aria-label="Project category">
+                    <div className={styles.categoryFilters} role="group" aria-label="Repository category">
                         {categories.map((item) => (
                             <button
                                 className={category === item.id ? styles.categoryActive : styles.categoryButton}
@@ -141,7 +243,7 @@ const Search = () => {
                     <label className={styles.selectControl}>
                         <span><FiFilter aria-hidden="true" /> Sort by</span>
                         <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}>
-                            <option value="recent">Recently added</option>
+                            <option value="recent">Recently updated</option>
                             <option value="name-asc">Name: A to Z</option>
                             <option value="name-desc">Name: Z to A</option>
                         </select>
@@ -156,60 +258,61 @@ const Search = () => {
             <section className={styles.resultsSection} aria-labelledby="results-heading">
                 <div className={styles.resultsHeading}>
                     <div>
-                        <h2 id="results-heading">Featured projects</h2>
+                        <h2 id="results-heading">Repositories</h2>
                         <p aria-live="polite">
-                            {results.length} featured {results.length === 1 ? "project" : "projects"} found
+                            {results.length.toLocaleString()} {results.length === 1 ? "repository" : "repositories"} found
                         </p>
                     </div>
-                    <span className={styles.resultsCount}>{String(results.length).padStart(2, "0")}</span>
+                    <span className={styles.resultsCount}>{results.length.toLocaleString()}</span>
                 </div>
 
                 {results.length ? (
                     <div className={styles.resultsGrid}>
-                        {results.map((project, index) => {
-                            const repository = project.code?.find((source) => source.url);
-                            const repoName = getProjectRepoName(project);
+                        {results.map((repository, index) => {
+                            const source = repository.code?.find((item) => item.url);
+                            const repoName = repository.repoName || getProjectRepoName(repository);
                             const screenshotUrl = screenshots[repoName];
                             const imageUrl = screenshotUrl && !failedScreenshots.has(repoName)
                                 ? screenshotUrl
                                 : defaultProjectImage;
 
                             return (
-                                <article className={styles.projectCard} key={project.name}>
+                                <article className={styles.projectCard} key={repoName || repository.name}>
                                     <img
                                         className={styles.projectBackdrop}
                                         src={imageUrl}
                                         alt=""
                                         aria-hidden="true"
+                                        loading="lazy"
                                         onError={() => {
                                             if (!screenshotUrl || failedScreenshots.has(repoName)) return;
                                             setFailedScreenshots((current) => new Set(current).add(repoName));
                                         }}
                                     />
                                     <div className={styles.cardMeta}>
-                                        <span>{project.category?.title || "Project"}</span>
+                                        <span>{repository.category?.title || "Public repository"}</span>
                                         <span>{String(index + 1).padStart(2, "0")}</span>
                                     </div>
-                                    <h3>{project.name}</h3>
-                                    <p className={styles.projectDescription}>{project.desc}</p>
+                                    <h3>{repository.name}</h3>
+                                    <p className={styles.projectDescription}>{repository.desc}</p>
 
                                     <div className={styles.techTags} aria-label="Technologies">
-                                        {(project.tech || []).slice(0, 4).map((stack) => (
+                                        {(repository.tech || []).slice(0, 4).map((stack) => (
                                             <span key={stack}>{stack}</span>
                                         ))}
-                                        {project.tech?.length > 4 && (
-                                            <span className={styles.moreTag}>+{project.tech.length - 4}</span>
+                                        {repository.tech?.length > 4 && (
+                                            <span className={styles.moreTag}>+{repository.tech.length - 4}</span>
                                         )}
                                     </div>
 
                                     <div className={styles.cardActions}>
-                                        {project.live && (
-                                            <a className={styles.primaryAction} href={project.live} target="_blank" rel="noopener noreferrer">
+                                        {repository.live && (
+                                            <a className={styles.primaryAction} href={repository.live} target="_blank" rel="noopener noreferrer">
                                                 Live project <FiExternalLink aria-hidden="true" />
                                             </a>
                                         )}
-                                        {repository && (
-                                            <a className={styles.sourceAction} href={repository.url} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.name} source code`}>
+                                        {source && (
+                                            <a className={styles.sourceAction} href={source.url} target="_blank" rel="noopener noreferrer" aria-label={`View ${repository.name} source code`}>
                                                 <FiGithub aria-hidden="true" /> Source <FiArrowUpRight aria-hidden="true" />
                                             </a>
                                         )}
@@ -221,8 +324,8 @@ const Search = () => {
                 ) : (
                     <div className={styles.emptyState}>
                         <span className={styles.emptyIcon}><FiSearch aria-hidden="true" /></span>
-                        <h3>No matching projects</h3>
-                        <p>Try another keyword or clear a filter to see more projects.</p>
+                        <h3>No matching repositories</h3>
+                        <p>Try another keyword or clear a filter to see more repositories.</p>
                         <button className={styles.resetButton} type="button" onClick={clearFilters}>Clear all filters</button>
                     </div>
                 )}

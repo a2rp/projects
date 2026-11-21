@@ -131,6 +131,77 @@
         }
     }
 
+    .topicSection {
+        display: grid;
+        gap: 10px;
+    }
+
+    .topicHeading {
+        display: flex;
+        align-items: baseline;
+        gap: 9px;
+
+        h2 {
+            margin: 0;
+            color: #d9e6dd;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        > span {
+            color: #728078;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 10px;
+        }
+    }
+
+    .topicFilters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .topicButton,
+        .topicActive {
+            display: inline-flex;
+            min-height: 37px;
+            align-items: center;
+            gap: 8px;
+            padding: 0 11px;
+            border: 1px solid #1b3026;
+            border-radius: 999px;
+            background: #0b1410;
+            color: #c8d8ce;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+
+            &:hover {
+                border-color: #52785f;
+                background: #111f17;
+                color: #f0f8f2;
+            }
+
+            &:focus-visible {
+                outline: 2px solid #83c99f;
+                outline-offset: 2px;
+            }
+        }
+
+        .topicActive {
+            border-color: #6db487;
+            background: #183023;
+            color: #c0f0cf;
+        }
+
+        .topicCount {
+            color: #84b897;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
     .filterRow {
         display: flex;
         align-items: flex-end;

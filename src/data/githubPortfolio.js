@@ -107,7 +107,6 @@ const requestGitHubJson = async (url) => {
 };
 
 const fetchRelevantRepos = async (cachedRepos) => {
-    const desiredNames = new Set(projects.map(getProjectRepoName).filter(Boolean));
     const reposByName = new Map();
     let page = 1;
 
@@ -121,8 +120,7 @@ const fetchRelevantRepos = async (cachedRepos) => {
             .map(normalizeRepo)
             .forEach((repo) => reposByName.set(repo.name.toLowerCase(), repo));
 
-        const hasAllFeaturedRepos = [...desiredNames].every((repoName) => reposByName.has(repoName));
-        if (hasAllFeaturedRepos || pageRepos.length < 100) break;
+        if (pageRepos.length < 100) break;
     }
 
     if (reposByName.size === 0 && cachedRepos.length) return cachedRepos;
