@@ -1,6 +1,23 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import styles from './style.module.css'
 
 const About = () => {
+    const location = useLocation()
+
+    useEffect(() => {
+        if (location.hash !== '#contact') return undefined
+
+        const frame = requestAnimationFrame(() => {
+            document.getElementById('contact')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            })
+        })
+
+        return () => cancelAnimationFrame(frame)
+    }, [location.hash])
+
     return (
         <>
             <div className={styles.wrapper}>
@@ -43,7 +60,7 @@ const About = () => {
                         <li>Integrates Stripe/Razorpay with real-world flows</li>
                     </ul>
 
-                    <h3>Contact</h3>
+                    <h3 id="contact">Contact</h3>
                     <ul>
                         <li>Email: ash.ranjan09@gmail.com</li>
                         <li>Portfolio: https://www.ashishranjan.net</li>

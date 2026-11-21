@@ -5,8 +5,9 @@ import { NavLink, useLocation } from "react-router-dom";
 import styles from "./style.module.css";
 
 const navItems = [
-    { label: "Projects", to: "/" },
+    { label: "Home", to: "/" },
     { label: "About", to: "/about" },
+    { label: "Contact", to: "/about#contact" },
 ];
 
 const repositoryUrl = "https://github.com/a2rp/projects";
@@ -72,37 +73,36 @@ const Header = () => {
                 </nav>
 
                 <div className={styles.headerActions}>
-                    <a
-                        className={styles.sourceLink}
-                        href={repositoryUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <FaGithub aria-hidden="true" />
-                        <span>Repository</span>
-                    </a>
-                    <button
-                        className={styles.menuButton}
-                        type="button"
+                    <div
+                        className={styles.menuLink}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => setMenuOpen((current) => !current)}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setMenuOpen((current) => !current);
+                            }
+                        }}
                         aria-label={menuOpen ? "Close menu" : "Open menu"}
                         aria-expanded={menuOpen}
-                        aria-controls="mobile-navigation"
+                        aria-controls="header-menu"
                     >
+                        <span>Menu</span>
                         {menuOpen ? (
                             <FiX aria-hidden="true" />
                         ) : (
                             <FiMenu aria-hidden="true" />
                         )}
-                    </button>
+                    </div>
                 </div>
             </div>
 
             {menuOpen && (
                 <nav
-                    className={styles.mobileMenu}
-                    id="mobile-navigation"
-                    aria-label="Mobile navigation"
+                    className={styles.menuDropdown}
+                    id="header-menu"
+                    aria-label="Menu navigation"
                 >
                     {navItems.map((item) => (
                         <NavLink

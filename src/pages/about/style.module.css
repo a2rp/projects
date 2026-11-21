@@ -13,6 +13,10 @@
     color: #fff;
 }
 
+.main h3[id="contact"] {
+    scroll-margin-top: 90px;
+}
+
 .main p {
     margin-bottom: 30px;
 }
