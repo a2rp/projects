@@ -97,6 +97,7 @@ const projectCollections = [
 ];
 
 const GITHUB_OWNER = "a2rp";
+const HERO_EXCLUDED_REPOS = new Set(["a2rp", "projects"]);
 const REPO_CACHE_KEY = "projects-portfolio:github-repos:v1";
 const SCREENSHOT_CACHE_TTL = 24 * 60 * 60 * 1000;
 const defaultFeaturedProject = projects[projects.length - 1];
@@ -106,6 +107,8 @@ const getProjectRepoName = (project) => {
     const match = repoUrl.match(/github\.com\/[^/]+\/([^/?#]+)/i);
     return match?.[1]?.replace(/\.git$/i, "").toLowerCase() || "";
 };
+
+const isEligibleHeroRepo = (repo) => !HERO_EXCLUDED_REPOS.has(repo?.name?.toLowerCase());
 
 const readCachedRepos = () => {
     if (typeof window === "undefined") return [];
@@ -191,8 +194,10 @@ const fetchPortfolioRepos = async (signal, cachedRepos) => {
             defaultBranch: repo.default_branch,
         }));
 
-    if (!repos.length) throw new Error("No portfolio repositories found");
-    const latestRepo = [...repos].sort((a, b) => getRepoTimestamp(b) - getRepoTimestamp(a))[0];
+    const latestRepo = repos
+        .filter(isEligibleHeroRepo)
+        .sort((a, b) => getRepoTimestamp(b) - getRepoTimestamp(a))[0];
+    if (!latestRepo) throw new Error("No eligible GitHub repositories found");
     const screenshotCheckedFor = latestRepo.updatedAt || latestRepo.pushedAt || "";
     const cachedLatestRepo = cachedRepos.find(
         (repo) => repo.name.toLowerCase() === latestRepo.name.toLowerCase(),
@@ -266,7 +271,9 @@ const Home = () => {
     }, []);
 
     const latestRepo = useMemo(
-        () => [...repoUpdates].sort((a, b) => getRepoTimestamp(b) - getRepoTimestamp(a))[0] || null,
+        () => repoUpdates
+            .filter(isEligibleHeroRepo)
+            .sort((a, b) => getRepoTimestamp(b) - getRepoTimestamp(a))[0] || null,
         [repoUpdates],
     );
     const featuredProject = useMemo(
