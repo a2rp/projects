@@ -99,37 +99,44 @@ const Header = () => {
             </div>
 
             {menuOpen && (
-                <nav
-                    className={styles.menuDropdown}
-                    id="header-menu"
-                    aria-label="Menu navigation"
-                >
-                    {navItems.map((item) => (
-                        <NavLink
-                            className={({ isActive }) =>
-                                isActive
-                                    ? styles.activeMobileNavLink
-                                    : styles.mobileNavLink
-                            }
-                            key={item.to}
-                            to={item.to}
-                            end={item.to === "/"}
-                            onClick={() => setMenuOpen(false)}
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))}
-                    <a
-                        className={styles.mobileNavLink}
-                        href={repositoryUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                <div
+                    className={styles.menuBackdrop}
+                    aria-hidden="true"
+                    onClick={() => setMenuOpen(false)}
+                />
+            )}
+
+            <nav
+                className={`${styles.menuSlider} ${menuOpen ? styles.menuSliderOpen : ""}`}
+                id="header-menu"
+                aria-label="Menu navigation"
+                aria-hidden={!menuOpen}
+            >
+                {navItems.map((item) => (
+                    <NavLink
+                        className={({ isActive }) =>
+                            isActive
+                                ? styles.activeMobileNavLink
+                                : styles.mobileNavLink
+                        }
+                        key={item.to}
+                        to={item.to}
+                        end={item.to === "/"}
                         onClick={() => setMenuOpen(false)}
                     >
-                        <FaGithub aria-hidden="true" /> Repository
-                    </a>
-                </nav>
-            )}
+                        {item.label}
+                    </NavLink>
+                ))}
+                <a
+                    className={styles.mobileNavLink}
+                    href={repositoryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                >
+                    <FaGithub aria-hidden="true" /> Repository
+                </a>
+            </nav>
         </header>
     );
 };
