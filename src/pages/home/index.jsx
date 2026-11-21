@@ -80,6 +80,8 @@ const projects = [
 
 
 
+const featuredProject = projects[projects.length - 1];
+
 const Home = () => {
     const [q, setQ] = useState("");
 
@@ -104,6 +106,106 @@ const Home = () => {
     return (
         <>
             <div className={styles.wrapper}>
+                <section
+                    className={styles.hero}
+                    aria-labelledby="featured-project-title"
+                >
+                    <div className={styles.heroContent}>
+                        <p className={styles.heroEyebrow}>
+                            <span className={styles.eyebrowLine} />
+                            Latest project
+                            <span className={styles.eyebrowDivider}>/</span>
+                            Health &amp; wellness
+                        </p>
+                        <h1
+                            className={styles.heroTitle}
+                            id="featured-project-title"
+                        >
+                            {featuredProject.name}
+                        </h1>
+                        <p className={styles.heroDescription}>
+                            A smarter BMI calculator with WHO categories,
+                            healthy weight guidance, bilingual support, and
+                            exportable history.
+                        </p>
+
+                        <div className={styles.heroActions}>
+                            <a
+                                className={styles.primaryAction}
+                                href={featuredProject.live}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Open live project <span aria-hidden="true">↗</span>
+                            </a>
+                            <a
+                                className={styles.secondaryAction}
+                                href={featuredProject.code[0].url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View source
+                            </a>
+                        </div>
+
+                        <div
+                            className={styles.heroTech}
+                            aria-label="Project technologies"
+                        >
+                            {featuredProject.tech.slice(0, 4).map((tech) => (
+                                <span className={styles.heroTechTag} key={tech}>
+                                    {tech}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className={styles.heroVisual} aria-hidden="true">
+                        <div className={styles.visualOrbit} />
+                        <div className={styles.resultCard}>
+                            <div className={styles.cardHeader}>
+                                <span className={styles.cardLabel}>
+                                    HEALTH SNAPSHOT
+                                </span>
+                                <span className={styles.previewBadge}>
+                                    SAMPLE
+                                </span>
+                            </div>
+
+                            <div className={styles.cardMetric}>
+                                <div className={styles.bmiGauge}>
+                                    <div className={styles.gaugeContent}>
+                                        <span>BMI</span>
+                                        <strong>22.4</strong>
+                                        <small>HEALTHY</small>
+                                    </div>
+                                </div>
+                                <div className={styles.metricDetails}>
+                                    <span>BODY MASS INDEX</span>
+                                    <strong>Healthy range</strong>
+                                    <small>WHO category</small>
+                                </div>
+                            </div>
+
+                            <div className={styles.rangeSection}>
+                                <div className={styles.rangeLabels}>
+                                    <span>UNDER</span>
+                                    <span>HEALTHY</span>
+                                    <span>OVER</span>
+                                </div>
+                                <div className={styles.rangeTrack}>
+                                    <span />
+                                </div>
+                            </div>
+
+                            <div className={styles.cardFooter}>
+                                <span>EN / हिंदी</span>
+                                <span>History &amp; CSV export</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <div className={styles.head}>
                     <div>
                         <h2 className={styles.title}>Projects Index</h2>
