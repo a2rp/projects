@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import heroImage from "../../assets/default-project-hero.webp";
 import {
     GITHUB_OWNER,
     getProjectRepoName,
     getRepoTimestamp,
 } from "../../data/githubPortfolio";
-import { projectCollections, projects } from "../../data/projects";
+import { projects } from "../../data/projects";
 import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
+import Search from "../search";
 import styles from "./style.module.css";
 const HERO_EXCLUDED_REPOS = new Set(["a2rp", "projects"]);
 const defaultFeaturedProject = projects[projects.length - 1];
@@ -25,6 +26,7 @@ const formatRepoDate = (value) => {
 
 const Home = () => {
     const [failedScreenshot, setFailedScreenshot] = useState("");
+    const location = useLocation();
     const { repos: repoUpdates, screenshots } = useGitHubPortfolio();
 
     const latestRepo = useMemo(
@@ -52,35 +54,19 @@ const Home = () => {
         },
         [latestRepo],
     );
-    const showcaseCollections = useMemo(() => {
-        const reposByName = new Map(repoUpdates.map((repo) => [repo.name.toLowerCase(), repo]));
-        const listedNames = new Set(projects.map((project) => project.name));
-
-        return projectCollections.map((collection) => {
-            const collectionProjects = collection.projects
-                .map((name) => projects.find((project) => project.name === name))
-                .filter(Boolean);
-
-            if (collection.id === "apps" && latestRepo && !listedNames.has(featuredProject.name)) {
-                collectionProjects.unshift(featuredProject);
-            }
-
-            const rankedProjects = collectionProjects
-                .map((project, index) => ({
-                    project,
-                    index,
-                    repo: reposByName.get(getProjectRepoName(project)),
-                }))
-                .sort((a, b) => getRepoTimestamp(b.repo) - getRepoTimestamp(a.repo) || b.index - a.index);
-
-            return { ...collection, projects: rankedProjects };
-        });
-    }, [featuredProject, latestRepo, repoUpdates]);
     const heroScreenshot = latestRepo ? screenshots[latestRepo.name.toLowerCase()] : "";
     const visibleHeroImage = heroScreenshot && failedScreenshot !== heroScreenshot
         ? heroScreenshot
         : heroImage;
     const updatedDate = formatRepoDate(latestRepo?.pushedAt || latestRepo?.updatedAt);
+
+    useEffect(() => {
+        if (location.hash !== "#search") return;
+
+        window.requestAnimationFrame(() => {
+            document.getElementById("search")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+    }, [location.hash]);
 
     return (
         <>
@@ -180,65 +166,7 @@ const Home = () => {
                     </div>
                 </section>
 
-                <section className={styles.showcaseGrid} aria-label="Project collections">
-                    {showcaseCollections.map((collection) => (
-                        <section className={styles.showcasePanel} key={collection.id}>
-                            <header className={styles.showcaseHeader}>
-                                <div className={styles.showcaseHeading}>
-                                    <h2>{collection.title}</h2>
-                                    <p>{collection.subtitle}</p>
-                                </div>
-                                <Link className={styles.showcaseAll} to="/search">
-                                    View all <span aria-hidden="true">↗</span>
-                                </Link>
-                            </header>
-
-                            <ol className={styles.showcaseList}>
-                                {collection.projects.map(({ project, repo }, index) => {
-                                    const projectUrl = project.live || project.code?.[0]?.url || "https://github.com/a2rp";
-                                    const updatedAt = repo?.updatedAt || repo?.pushedAt;
-                                    const coverHue = (index * 43 + (collection.id === "apps" ? 12 : 150)) % 360;
-
-                                    return (
-                                        <li key={`${collection.id}-${project.name}`}>
-                                            <a
-                                                className={styles.showcaseRow}
-                                                href={projectUrl}
-                                                target={projectUrl.startsWith("#") ? undefined : "_blank"}
-                                                rel={projectUrl.startsWith("#") ? undefined : "noopener noreferrer"}
-                                            >
-                                                <span className={styles.showcaseRank} aria-hidden="true">
-                                                    {String(index + 1).padStart(2, "0")}
-                                                </span>
-                                                <span
-                                                    className={styles.showcaseThumb}
-                                                    style={{ "--cover-hue": coverHue }}
-                                                    aria-hidden="true"
-                                                >
-                                                    {project.name.trim().charAt(0).toUpperCase()}
-                                                </span>
-                                                <span className={styles.showcaseInfo}>
-                                                    <strong title={project.name}>{project.name}</strong>
-                                                    <span>
-                                                        {updatedAt
-                                                            ? `Updated ${formatRepoDate(updatedAt)}`
-                                                            : project.tech.slice(0, 2).join(" · ")}
-                                                    </span>
-                                                </span>
-                                                <span className={styles.showcaseTags} aria-label="Technologies">
-                                                    {project.tech.slice(0, 2).map((tech) => (
-                                                        <span key={tech}>{tech}</span>
-                                                    ))}
-                                                </span>
-                                            </a>
-                                        </li>
-                                    );
-                                })}
-                            </ol>
-                        </section>
-                    ))}
-                </section>
-
+                <Search />
             </div>
         </>
     );

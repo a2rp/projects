@@ -6,7 +6,7 @@ import styles from "./style.module.css";
 
 const navItems = [
     { label: "Home", to: "/", icon: FiHome },
-    { label: "Search", to: "/search", icon: FiSearch },
+    { label: "Search", to: "/#search", icon: FiSearch },
     { label: "About", to: "/about", icon: FiUser },
     { label: "Contact", to: "/about#contact", icon: FiMail },
 ];
@@ -16,6 +16,11 @@ const repositoryUrl = "https://github.com/a2rp/projects";
 const Header = () => {
     const location = useLocation();
     const [menuOpen, setMenuOpen] = useState(false);
+    const isNavItemActive = (item, isRouteActive) => {
+        if (item.label === "Search") return location.pathname === "/" && location.hash === "#search";
+        if (item.label === "Home") return location.pathname === "/" && location.hash !== "#search";
+        return isRouteActive;
+    };
 
     useEffect(() => {
         if (!menuOpen) return undefined;
@@ -59,12 +64,12 @@ const Header = () => {
 
                         return (
                             <NavLink
-                                className={({ isActive }) =>
-                                    isActive ? styles.activeNavLink : styles.navLink
-                                }
+                                className={({ isActive }) => isNavItemActive(item, isActive)
+                                    ? styles.activeNavLink
+                                    : styles.navLink}
                                 key={item.to}
                                 to={item.to}
-                                end={item.to === "/"}
+                                end={item.label === "Home" || item.label === "Search"}
                             >
                                 <Icon aria-hidden="true" />
                                 <span>{item.label}</span>
@@ -113,14 +118,12 @@ const Header = () => {
 
                     return (
                         <NavLink
-                            className={({ isActive }) =>
-                                isActive
-                                    ? styles.activeMobileNavLink
-                                    : styles.mobileNavLink
-                            }
+                            className={({ isActive }) => isNavItemActive(item, isActive)
+                                ? styles.activeMobileNavLink
+                                : styles.mobileNavLink}
                             key={item.to}
                             to={item.to}
-                            end={item.to === "/"}
+                            end={item.label === "Home" || item.label === "Search"}
                             onClick={() => setMenuOpen(false)}
                         >
                             <Icon aria-hidden="true" />

@@ -227,7 +227,7 @@ const Search = () => {
     };
 
     return (
-        <div className={styles.wrapper}>
+        <div className={styles.wrapper} id="search">
             <header className={styles.pageIntro}>
                 <div className={styles.introHeading}>
                     <h1><span aria-hidden="true" />Repositories</h1>
