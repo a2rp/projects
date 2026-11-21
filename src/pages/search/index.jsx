@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     FiArrowUpRight,
     FiCode,
@@ -8,7 +8,13 @@ import {
     FiSearch,
     FiX,
 } from "react-icons/fi";
+import defaultProjectImage from "../../assets/default-project-hero.webp";
 import { projectCollections, projects } from "../../data/projects";
+import {
+    getProjectRepoName,
+    readCachedProjectScreenshots,
+    syncProjectScreenshots,
+} from "../../data/repositoryScreenshots";
 import styles from "./style.module.css";
 
 const categories = [
@@ -30,6 +36,22 @@ const Search = () => {
     const [category, setCategory] = useState("all");
     const [techStack, setTechStack] = useState("all");
     const [sortOrder, setSortOrder] = useState("recent");
+    const [screenshots, setScreenshots] = useState(readCachedProjectScreenshots);
+    const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        syncProjectScreenshots(projects, controller.signal)
+            .then((nextScreenshots) => {
+                if (!controller.signal.aborted) setScreenshots(nextScreenshots);
+            })
+            .catch(() => {
+                // Keep cached screenshots when GitHub is unavailable.
+            });
+
+        return () => controller.abort();
+    }, []);
 
     const results = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -160,9 +182,24 @@ const Search = () => {
                     <div className={styles.resultsGrid}>
                         {results.map((project, index) => {
                             const repository = project.code?.find((source) => source.url);
+                            const repoName = getProjectRepoName(project);
+                            const screenshotUrl = screenshots[repoName];
+                            const imageUrl = screenshotUrl && !failedScreenshots.has(repoName)
+                                ? screenshotUrl
+                                : defaultProjectImage;
 
                             return (
                                 <article className={styles.projectCard} key={project.name}>
+                                    <img
+                                        className={styles.projectBackdrop}
+                                        src={imageUrl}
+                                        alt=""
+                                        aria-hidden="true"
+                                        onError={() => {
+                                            if (!screenshotUrl || failedScreenshots.has(repoName)) return;
+                                            setFailedScreenshots((current) => new Set(current).add(repoName));
+                                        }}
+                                    />
                                     <div className={styles.cardMeta}>
                                         <span>{project.category?.title || "Project"}</span>
                                         <span>{String(index + 1).padStart(2, "0")}</span>
