@@ -44,12 +44,12 @@ const Header = () => {
                 <NavLink
                     className={styles.brandLink}
                     to="/"
-                    aria-label="Projects Index home"
+                    aria-label="Ashish Ranjan Project Portfolio home"
                 >
                     <img src="/projects/logo.png" alt="Ashish Ranjan logo" />
                     <span>
                         <small>Ashish Ranjan</small>
-                        <strong>Projects Index</strong>
+                        <strong>Project Portfolio</strong>
                     </span>
                 </NavLink>
 
