@@ -109,6 +109,10 @@ const Search = () => {
         repositories.flatMap((repository) => repository.tech || []),
     ).sort((first, second) => first.localeCompare(second)), [repositories]);
 
+    const selectedTopicCount = topicFilter === "all"
+        ? publicRepoCount
+        : topics.find(({ topic }) => topic === topicFilter)?.count || 0;
+
     const results = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
 
@@ -185,33 +189,24 @@ const Search = () => {
                 </div>
 
                 <div className={styles.topicSection}>
-                    <div className={styles.topicHeading}>
-                        <h2>Topics</h2>
-                        <span>{topics.length} topics</span>
-                    </div>
-                    <div className={styles.topicFilters} role="group" aria-label="Filter by repository topic">
-                        <button
-                            className={topicFilter === "all" ? styles.topicActive : styles.topicButton}
-                            type="button"
-                            aria-pressed={topicFilter === "all"}
-                            onClick={() => setTopicFilter("all")}
+                    <label className={styles.topicLabel} htmlFor="repository-topic-filter">
+                        <span>Filter by topic</span>
+                        <small>{topics.length} repository topics</small>
+                    </label>
+                    <div className={styles.topicSelectControl}>
+                        <select
+                            id="repository-topic-filter"
+                            value={topicFilter}
+                            onChange={(event) => setTopicFilter(event.target.value)}
                         >
-                            <span>All topics</span>
-                            <span className={styles.topicCount}>{githubRepos.length.toLocaleString()}</span>
-                        </button>
-                        {topics.map(({ topic, label, count }) => (
-                            <button
-                                className={topicFilter === topic ? styles.topicActive : styles.topicButton}
-                                key={topic}
-                                type="button"
-                                aria-pressed={topicFilter === topic}
-                                aria-label={`${label}, ${count} ${count === 1 ? "repository" : "repositories"}`}
-                                onClick={() => setTopicFilter(topic)}
-                            >
-                                <span>{label}</span>
-                                <span className={styles.topicCount}>{count.toLocaleString()}</span>
-                            </button>
-                        ))}
+                            <option value="all">All topics</option>
+                            {topics.map(({ topic, label }) => (
+                                <option key={topic} value={topic}>{label}</option>
+                            ))}
+                        </select>
+                        <span className={styles.topicSelectedCount} aria-live="polite">
+                            {selectedTopicCount.toLocaleString()} {selectedTopicCount === 1 ? "repo" : "repos"}
+                        </span>
                     </div>
                 </div>
 
