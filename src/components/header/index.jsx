@@ -48,7 +48,7 @@ const Header = () => {
                 >
                     <img src="/projects/logo.png" alt="Ashish Ranjan logo" />
                     <span>
-                        <small>ASHISH RANJAN</small>
+                        <small>Ashish Ranjan</small>
                         <strong>Projects Index</strong>
                     </span>
                 </NavLink>
