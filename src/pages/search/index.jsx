@@ -9,6 +9,11 @@ import {
     FiX,
 } from "react-icons/fi";
 import defaultProjectImage from "../../assets/default-project-hero.webp";
+import {
+    FALLBACK_PUBLIC_REPO_COUNT,
+    fetchAndCachePublicRepoCount,
+    readCachedPublicRepoCount,
+} from "../../data/githubProfile";
 import { projectCollections, projects } from "../../data/projects";
 import {
     getProjectRepoName,
@@ -38,6 +43,23 @@ const Search = () => {
     const [sortOrder, setSortOrder] = useState("recent");
     const [screenshots, setScreenshots] = useState(readCachedProjectScreenshots);
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
+    const [publicRepoCount, setPublicRepoCount] = useState(
+        () => readCachedPublicRepoCount() ?? FALLBACK_PUBLIC_REPO_COUNT,
+    );
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        fetchAndCachePublicRepoCount(controller.signal)
+            .then((count) => {
+                if (!controller.signal.aborted) setPublicRepoCount(count);
+            })
+            .catch(() => {
+                // Keep the cached or supplied profile count when GitHub is unavailable.
+            });
+
+        return () => controller.abort();
+    }, []);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -96,12 +118,12 @@ const Search = () => {
                 <div className={styles.introHeading}>
                     <h1><span aria-hidden="true" />Projects</h1>
                     <span className={styles.introCount}>
-                        {projects.length.toLocaleString()} PROJECTS
+                        {publicRepoCount.toLocaleString()} PUBLIC REPOSITORIES
                     </span>
                 </div>
                 <p className={styles.introCopy}>
-                    Explore {projects.length} portfolio projects across apps, experiments, and reusable UI tools.
-                    Search by name, description, or technology to find a project.
+                    Your a2rp GitHub profile has {publicRepoCount.toLocaleString()} public repositories.
+                    Search the featured portfolio projects below by name, description, or technology.
                 </p>
             </header>
 
@@ -173,9 +195,9 @@ const Search = () => {
             <section className={styles.resultsSection} aria-labelledby="results-heading">
                 <div className={styles.resultsHeading}>
                     <div>
-                        <h2 id="results-heading">Search results</h2>
+                        <h2 id="results-heading">Featured projects</h2>
                         <p aria-live="polite">
-                            {results.length} {results.length === 1 ? "project" : "projects"} found
+                            {results.length} featured {results.length === 1 ? "project" : "projects"} found
                         </p>
                     </div>
                     <span className={styles.resultsCount}>{String(results.length).padStart(2, "0")}</span>
