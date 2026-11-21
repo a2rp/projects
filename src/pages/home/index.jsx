@@ -311,16 +311,16 @@ const Home = () => {
                             {latestRepo ? (
                                 <>
                                     <div className={styles.heroFact} role="listitem">
+                                        <strong>{formatRepoDate(latestRepo.createdAt)}</strong>
+                                        <span>Repository created</span>
+                                    </div>
+                                    <div className={styles.heroFact} role="listitem">
                                         <strong>{updatedDate}</strong>
                                         <span>Repository updated</span>
                                     </div>
                                     <div className={styles.heroFact} role="listitem">
                                         <strong>{latestRepo.language || "Multi-stack"}</strong>
                                         <span>Primary language</span>
-                                    </div>
-                                    <div className={styles.heroFact} role="listitem">
-                                        <strong>{formatRepoDate(latestRepo.createdAt)}</strong>
-                                        <span>Repository created</span>
                                     </div>
                                 </>
                             ) : (
