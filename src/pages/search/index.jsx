@@ -18,11 +18,6 @@ import {
 import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
 import styles from "./style.module.css";
 
-const categories = [
-    { id: "all", label: "All repositories" },
-    ...projectCollections.map(({ id, title }) => ({ id, label: title })),
-];
-
 const projectCategoryByName = new Map(
     projectCollections.flatMap((collection) =>
         collection.projects.map((projectName) => [projectName, collection]),
@@ -37,7 +32,6 @@ const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
 
 const Search = () => {
     const [query, setQuery] = useState("");
-    const [category, setCategory] = useState("all");
     const [techStack, setTechStack] = useState("all");
     const [topicFilter, setTopicFilter] = useState("all");
     const [topicMenuOpen, setTopicMenuOpen] = useState(false);
@@ -164,11 +158,10 @@ const Search = () => {
                 ].join(" ").toLowerCase();
 
                 const matchesQuery = !normalizedQuery || searchableContent.includes(normalizedQuery);
-                const matchesCategory = category === "all" || repository.category?.id === category;
                 const matchesTechStack = techStack === "all" || repository.tech?.includes(techStack);
                 const matchesTopic = topicFilter === "all" || repository.topics?.includes(topicFilter);
 
-                return matchesQuery && matchesCategory && matchesTechStack && matchesTopic;
+                return matchesQuery && matchesTechStack && matchesTopic;
             })
             .sort((first, second) => {
                 if (sortOrder === "name-asc") return first.name.localeCompare(second.name);
@@ -176,11 +169,10 @@ const Search = () => {
                 return getRepoTimestamp(second.repo) - getRepoTimestamp(first.repo)
                     || first.originalIndex - second.originalIndex;
             });
-    }, [category, query, repositories, sortOrder, techStack, topicFilter]);
+    }, [query, repositories, sortOrder, techStack, topicFilter]);
 
     const clearFilters = () => {
         setQuery("");
-        setCategory("all");
         setTechStack("all");
         setTopicFilter("all");
         setSortOrder("recent");
@@ -300,20 +292,6 @@ const Search = () => {
                 </div>
 
                 <div className={styles.filterRow}>
-                    <div className={styles.categoryFilters} role="group" aria-label="Repository category">
-                        {categories.map((item) => (
-                            <button
-                                className={category === item.id ? styles.categoryActive : styles.categoryButton}
-                                key={item.id}
-                                type="button"
-                                aria-pressed={category === item.id}
-                                onClick={() => setCategory(item.id)}
-                            >
-                                {item.label}
-                            </button>
-                        ))}
-                    </div>
-
                     <label className={styles.selectControl}>
                         <span><FiCode aria-hidden="true" /> Technology</span>
                         <select value={techStack} onChange={(event) => setTechStack(event.target.value)}>

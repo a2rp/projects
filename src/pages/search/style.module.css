@@ -306,39 +306,6 @@
         gap: 12px;
     }
 
-    .categoryFilters {
-        display: flex;
-        flex: 1 1 360px;
-        flex-wrap: wrap;
-        gap: 7px;
-
-        .categoryButton,
-        .categoryActive {
-            min-height: 38px;
-            padding: 0 12px;
-            border: 1px solid #28322e;
-            border-radius: 8px;
-            background: #0b100e;
-            color: #aab5ae;
-            font: inherit;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
-
-            &:hover {
-                border-color: #50735e;
-                color: #eff8f1;
-            }
-        }
-
-        .categoryActive {
-            border-color: #52785f;
-            background: #14231a;
-            color: #b0ebc3;
-        }
-    }
-
     .selectControl {
         display: grid;
         min-width: 160px;
@@ -684,10 +651,6 @@
             min-width: 0;
         }
 
-        .categoryFilters {
-            flex-basis: 100%;
-        }
-
         .selectControl {
             flex: 1 1 150px;
         }
@@ -710,16 +673,6 @@
 
             input {
                 font-size: 13px;
-            }
-        }
-
-        .categoryFilters {
-            display: grid;
-            grid-template-columns: 1fr;
-
-            .categoryButton,
-            .categoryActive {
-                text-align: left;
             }
         }
 
