@@ -8,6 +8,33 @@
     box-sizing: border-box;
     line-height: 1.6;
     scroll-behavior: smooth !important;
+    scrollbar-color: #668a77 #0a0d0b;
+    scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+*::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: #0a0d0b;
+}
+
+*::-webkit-scrollbar-thumb {
+    min-height: 48px;
+    border: 2px solid #0a0d0b;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #a9df8b, #559d79);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #c6f3a6, #70c498);
+}
+
+*::-webkit-scrollbar-corner {
+    background: #0a0d0b;
 }
 
 html,
