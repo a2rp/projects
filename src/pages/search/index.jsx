@@ -31,7 +31,6 @@ const featuredProjectByRepoName = new Map(
 );
 
 const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
-const RESULTS_PER_PAGE = 12;
 
 const getPaginationItems = (currentPage, totalPages) => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
@@ -55,6 +54,7 @@ const Search = () => {
     const [topicFilter, setTopicFilter] = useState("all");
     const [topicMenuOpen, setTopicMenuOpen] = useState(false);
     const [sortOrder, setSortOrder] = useState("recent");
+    const [pageSize, setPageSize] = useState(12);
     const [currentPage, setCurrentPage] = useState(1);
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
     const topicDropdownRef = useRef(null);
@@ -192,10 +192,11 @@ const Search = () => {
             });
     }, [query, repositories, sortOrder, techStack, topicFilter]);
 
-    const totalPages = Math.max(1, Math.ceil(results.length / RESULTS_PER_PAGE));
+    const itemsPerPage = pageSize ?? Math.max(results.length, 1);
+    const totalPages = Math.max(1, Math.ceil(results.length / itemsPerPage));
     const activePage = Math.min(currentPage, totalPages);
-    const pageStart = results.length ? (activePage - 1) * RESULTS_PER_PAGE + 1 : 0;
-    const pageEnd = Math.min(activePage * RESULTS_PER_PAGE, results.length);
+    const pageStart = results.length ? (activePage - 1) * itemsPerPage + 1 : 0;
+    const pageEnd = Math.min(activePage * itemsPerPage, results.length);
     const paginatedResults = results.slice(pageStart - 1, pageEnd);
     const paginationItems = getPaginationItems(activePage, totalPages);
 
@@ -446,12 +447,29 @@ const Search = () => {
                             );
                         })}
                     </div>
-                    {totalPages > 1 && (
-                        <nav className={styles.pagination} aria-label="Repository result pages">
-                            <span className={styles.pageIndicator}>
-                                Page {activePage} of {totalPages}
-                            </span>
-                            <div className={styles.paginationControls}>
+                    <nav className={styles.pagination} aria-label="Repository result pages">
+                        <label className={styles.pageSizeControl}>
+                            <span>Repositories per page</span>
+                            <select
+                                value={pageSize ?? "all"}
+                                onChange={(event) => {
+                                    const value = event.target.value;
+                                    setPageSize(value === "all" ? null : Number(value));
+                                    setCurrentPage(1);
+                                }}
+                                aria-label="Repositories per page"
+                            >
+                                <option value="12">12</option>
+                                <option value="24">24</option>
+                                <option value="48">48</option>
+                                <option value="96">96</option>
+                                <option value="all">All</option>
+                            </select>
+                        </label>
+                        <span className={styles.pageIndicator}>
+                            Page {activePage} of {totalPages}
+                        </span>
+                        <div className={styles.paginationControls}>
                                 <button
                                     className={styles.pageStep}
                                     type="button"
@@ -490,9 +508,8 @@ const Search = () => {
                                     <span>Next</span>
                                     <FiChevronRight aria-hidden="true" />
                                 </button>
-                            </div>
-                        </nav>
-                    )}
+                        </div>
+                    </nav>
                     </>
                 ) : (
                     <div className={styles.emptyState}>

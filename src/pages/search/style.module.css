@@ -437,6 +437,39 @@
         padding-top: 16px;
         border-top: 1px solid #1d2923;
 
+        .pageSizeControl {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: #84938a;
+            font-size: 11px;
+            white-space: nowrap;
+
+            select {
+                min-width: 70px;
+                min-height: 36px;
+                padding: 0 26px 0 10px;
+                border: 1px solid #293830;
+                border-radius: 9px;
+                background: #0b100e;
+                color: #dce8df;
+                font: inherit;
+                font-size: 12px;
+                cursor: pointer;
+                color-scheme: dark;
+
+                &:hover,
+                &:focus-visible {
+                    border-color: #5a8067;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid #83c99f;
+                    outline-offset: 2px;
+                }
+            }
+        }
+
         .pageIndicator {
             color: #84938a;
             font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
