@@ -169,9 +169,8 @@ const fetchPortfolioRepos = async (signal, cachedRepos) => {
             name: repo.name,
             pushedAt: repo.pushed_at,
             updatedAt: repo.updated_at,
+            createdAt: repo.created_at,
             language: repo.language,
-            stars: repo.stargazers_count,
-            forks: repo.forks_count,
             topics: Array.isArray(repo.topics) ? repo.topics : [],
             defaultBranch: repo.default_branch,
         }));
@@ -320,20 +319,12 @@ const Home = () => {
                                         <span>Primary language</span>
                                     </div>
                                     <div className={styles.heroFact} role="listitem">
-                                        <strong>{latestRepo.stars ?? 0}</strong>
-                                        <span>GitHub stars</span>
-                                    </div>
-                                    <div className={styles.heroFact} role="listitem">
-                                        <strong>{latestRepo.forks ?? 0}</strong>
-                                        <span>Repository forks</span>
+                                        <strong>{formatRepoDate(latestRepo.createdAt)}</strong>
+                                        <span>Repository created</span>
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <div className={styles.heroFact} role="listitem">
-                                        <strong>{featuredProject.tech.length}</strong>
-                                        <span>Technologies</span>
-                                    </div>
                                     <div className={styles.heroFact} role="listitem">
                                         <strong>Live</strong>
                                         <span>Project demo</span>
