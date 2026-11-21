@@ -127,6 +127,7 @@
 .menuBackdrop {
     position: fixed;
     inset: 72px 0 0;
+    right: var(--menu-scrollbar-gap, 0px);
     z-index: 9997;
     background: rgba(0, 0, 0, 0.52);
     animation: backdropFadeIn 0.24s ease-out;
@@ -135,7 +136,7 @@
 .menuSlider {
     position: fixed;
     top: 72px;
-    right: 0;
+    right: var(--menu-scrollbar-gap, 0px);
     z-index: 9998;
     width: min(360px, 88vw);
     height: calc(100vh - 72px);

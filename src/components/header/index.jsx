@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
 import { NavLink, useLocation } from "react-router-dom";
@@ -14,22 +14,31 @@ const repositoryUrl = "https://github.com/a2rp/projects";
 
 const Header = () => {
     const location = useLocation();
+    const headerRef = useRef(null);
     const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         if (!menuOpen) return undefined;
 
         const scrollArea = document.getElementById("page-scroll-area");
-        const previousOverflow = scrollArea?.style.overflow;
+        const header = headerRef.current;
+        const previousScrollbarGap = header?.style.getPropertyValue("--menu-scrollbar-gap") || "";
+        const scrollbarGap = scrollArea ? scrollArea.offsetWidth - scrollArea.clientWidth : 0;
         const closeOnEscape = (event) => {
             if (event.key === "Escape") setMenuOpen(false);
         };
 
-        if (scrollArea) scrollArea.style.overflow = "hidden";
+        if (header) header.style.setProperty("--menu-scrollbar-gap", `${scrollbarGap}px`);
         document.addEventListener("keydown", closeOnEscape);
 
         return () => {
-            if (scrollArea) scrollArea.style.overflow = previousOverflow;
+            if (header) {
+                if (previousScrollbarGap) {
+                    header.style.setProperty("--menu-scrollbar-gap", previousScrollbarGap);
+                } else {
+                    header.style.removeProperty("--menu-scrollbar-gap");
+                }
+            }
             document.removeEventListener("keydown", closeOnEscape);
         };
     }, [menuOpen]);
@@ -39,7 +48,7 @@ const Header = () => {
     }, [location.pathname]);
 
     return (
-        <header className={styles.header}>
+        <header className={styles.header} ref={headerRef}>
             <div className={styles.headerMain}>
                 <NavLink
                     className={styles.brandLink}
