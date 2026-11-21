@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import heroImage from "../../assets/healthpro-hero.webp";
 import styles from "./style.module.css";
 
 const projects = [
@@ -106,28 +107,49 @@ const Home = () => {
     return (
         <>
             <div className={styles.wrapper}>
-                <section
-                    className={styles.hero}
-                    aria-labelledby="featured-project-title"
-                >
+                <section className={styles.hero} aria-labelledby="featured-project-title">
+                    <img className={styles.heroImage} src={heroImage} alt="" aria-hidden="true" />
                     <div className={styles.heroContent}>
                         <p className={styles.heroEyebrow}>
                             <span className={styles.eyebrowLine} />
-                            Latest project
-                            <span className={styles.eyebrowDivider}>/</span>
-                            Health &amp; wellness
+                            <span>Latest project</span>
+                            <span className={styles.eyebrowDivider}>|</span>
+                            <span>Health &amp; wellness</span>
                         </p>
-                        <h1
-                            className={styles.heroTitle}
-                            id="featured-project-title"
-                        >
+                        <h1 className={styles.heroTitle} id="featured-project-title">
                             {featuredProject.name}
                         </h1>
+                        <p className={styles.heroTagline}>Clear numbers. Better-informed choices.</p>
                         <p className={styles.heroDescription}>
-                            A smarter BMI calculator with WHO categories,
-                            healthy weight guidance, bilingual support, and
-                            exportable history.
+                            A flexible BMI calculator with WHO categories, healthy weight guidance,
+                            bilingual support, and an exportable history.
                         </p>
+
+                        <div className={styles.heroFacts} aria-label="Project highlights" role="list">
+                            <div className={styles.heroFact} role="listitem">
+                                <strong>WHO</strong>
+                                <span>BMI categories</span>
+                            </div>
+                            <div className={styles.heroFact} role="listitem">
+                                <strong>kg / lb</strong>
+                                <span>Weight units</span>
+                            </div>
+                            <div className={styles.heroFact} role="listitem">
+                                <strong>EN / HI</strong>
+                                <span>Two languages</span>
+                            </div>
+                            <div className={styles.heroFact} role="listitem">
+                                <strong>CSV</strong>
+                                <span>History export</span>
+                            </div>
+                        </div>
+
+                        <div className={styles.heroHighlights} aria-label="More features" role="list">
+                            <span role="listitem">Healthy weight range</span>
+                            <span role="listitem">cm or ft + in</span>
+                            <span role="listitem">Local history</span>
+                            <span role="listitem">Accessible form</span>
+                        </div>
 
                         <div className={styles.heroActions}>
                             <a
@@ -136,7 +158,7 @@ const Home = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                Open live project <span aria-hidden="true">↗</span>
+                                Try the calculator <span aria-hidden="true">&rarr;</span>
                             </a>
                             <a
                                 className={styles.secondaryAction}
@@ -144,64 +166,17 @@ const Home = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                View source
+                                View source code
                             </a>
                         </div>
 
-                        <div
-                            className={styles.heroTech}
-                            aria-label="Project technologies"
-                        >
-                            {featuredProject.tech.slice(0, 4).map((tech) => (
+                        <div className={styles.heroTech} role="group" aria-label="Project technology stack">
+                            <span className={styles.heroTechLabel}>Built with</span>
+                            {featuredProject.tech.map((tech) => (
                                 <span className={styles.heroTechTag} key={tech}>
                                     {tech}
                                 </span>
                             ))}
-                        </div>
-                    </div>
-
-                    <div className={styles.heroVisual} aria-hidden="true">
-                        <div className={styles.visualOrbit} />
-                        <div className={styles.resultCard}>
-                            <div className={styles.cardHeader}>
-                                <span className={styles.cardLabel}>
-                                    HEALTH SNAPSHOT
-                                </span>
-                                <span className={styles.previewBadge}>
-                                    SAMPLE
-                                </span>
-                            </div>
-
-                            <div className={styles.cardMetric}>
-                                <div className={styles.bmiGauge}>
-                                    <div className={styles.gaugeContent}>
-                                        <span>BMI</span>
-                                        <strong>22.4</strong>
-                                        <small>HEALTHY</small>
-                                    </div>
-                                </div>
-                                <div className={styles.metricDetails}>
-                                    <span>BODY MASS INDEX</span>
-                                    <strong>Healthy range</strong>
-                                    <small>WHO category</small>
-                                </div>
-                            </div>
-
-                            <div className={styles.rangeSection}>
-                                <div className={styles.rangeLabels}>
-                                    <span>UNDER</span>
-                                    <span>HEALTHY</span>
-                                    <span>OVER</span>
-                                </div>
-                                <div className={styles.rangeTrack}>
-                                    <span />
-                                </div>
-                            </div>
-
-                            <div className={styles.cardFooter}>
-                                <span>EN / हिंदी</span>
-                                <span>History &amp; CSV export</span>
-                            </div>
                         </div>
                     </div>
                 </section>
