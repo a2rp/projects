@@ -122,7 +122,7 @@ const Search = () => {
                     </span>
                 </div>
                 <p className={styles.introCopy}>
-                    Your a2rp GitHub profile has {publicRepoCount.toLocaleString()} public repositories.
+                    Explore {publicRepoCount.toLocaleString()} public repositories by Ashish Ranjan.
                     Search the featured portfolio projects below by name, description, or technology.
                 </p>
             </header>
