@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     FiArrowUpRight,
+    FiChevronDown,
     FiCode,
     FiExternalLink,
     FiFilter,
@@ -39,8 +40,12 @@ const Search = () => {
     const [category, setCategory] = useState("all");
     const [techStack, setTechStack] = useState("all");
     const [topicFilter, setTopicFilter] = useState("all");
+    const [topicMenuOpen, setTopicMenuOpen] = useState(false);
     const [sortOrder, setSortOrder] = useState("recent");
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
+    const topicDropdownRef = useRef(null);
+    const topicTriggerRef = useRef(null);
+    const topicOptionRefs = useRef([]);
     const { repos: githubRepos, screenshots, publicRepoCount } = useGitHubPortfolio();
 
     const repositories = useMemo(() => {
@@ -107,6 +112,43 @@ const Search = () => {
     const selectedTopicCount = topicFilter === "all"
         ? publicRepoCount
         : topics.find(({ topic }) => topic === topicFilter)?.count || 0;
+    const topicOptions = [{ topic: "all", label: "All topics" }, ...topics];
+    const selectedTopicIndex = Math.max(0, topicOptions.findIndex(({ topic }) => topic === topicFilter));
+    const selectedTopic = topicOptions[selectedTopicIndex];
+
+    useEffect(() => {
+        if (!topicMenuOpen) return undefined;
+
+        topicOptionRefs.current[selectedTopicIndex]?.focus();
+
+        const closeOnOutsidePointer = (event) => {
+            if (!topicDropdownRef.current?.contains(event.target)) setTopicMenuOpen(false);
+        };
+        const closeOnEscape = (event) => {
+            if (event.key !== "Escape") return;
+            setTopicMenuOpen(false);
+            topicTriggerRef.current?.focus();
+        };
+
+        document.addEventListener("pointerdown", closeOnOutsidePointer);
+        document.addEventListener("keydown", closeOnEscape);
+        return () => {
+            document.removeEventListener("pointerdown", closeOnOutsidePointer);
+            document.removeEventListener("keydown", closeOnEscape);
+        };
+    }, [selectedTopicIndex, topicMenuOpen]);
+
+    const handleTopicOptionKeyDown = (event, optionIndex) => {
+        let nextIndex = optionIndex;
+        if (event.key === "ArrowDown") nextIndex = Math.min(optionIndex + 1, topicOptions.length - 1);
+        else if (event.key === "ArrowUp") nextIndex = Math.max(optionIndex - 1, 0);
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = topicOptions.length - 1;
+        else return;
+
+        event.preventDefault();
+        topicOptionRefs.current[nextIndex]?.focus();
+    };
 
     const results = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -159,23 +201,73 @@ const Search = () => {
             </header>
 
             <section className={styles.topicSection} aria-label="Filter by repository topic">
-                <label className={styles.topicLabel} htmlFor="repository-topic-filter">
-                    <span>Filter by topic</span>
+                <div className={styles.topicLabel}>
+                    <span id="topic-filter-label">Filter by topic</span>
                     <small>{topics.length} repository topics</small>
-                </label>
+                </div>
                 <div className={styles.topicSelectControl}>
-                    <select
-                        id="repository-topic-filter"
-                        value={topicFilter}
-                        onChange={(event) => setTopicFilter(event.target.value)}
+                    <div
+                        className={styles.topicDropdown}
+                        ref={topicDropdownRef}
+                        onBlur={(event) => {
+                            if (!event.currentTarget.contains(event.relatedTarget)) setTopicMenuOpen(false);
+                        }}
                     >
-                        <option value="all">All topics</option>
-                        {topics.map(({ topic, label, count }) => (
-                            <option key={topic} value={topic}>
-                                {label} ({count.toLocaleString()})
-                            </option>
-                        ))}
-                    </select>
+                        <button
+                            className={styles.topicTrigger}
+                            type="button"
+                            ref={topicTriggerRef}
+                            aria-haspopup="listbox"
+                            aria-expanded={topicMenuOpen}
+                            aria-controls="repository-topic-options"
+                            aria-label={`Filter by topic: ${selectedTopic.label}`}
+                            onClick={() => setTopicMenuOpen((open) => !open)}
+                            onKeyDown={(event) => {
+                                if (event.key === "ArrowDown") {
+                                    event.preventDefault();
+                                    setTopicMenuOpen(true);
+                                }
+                            }}
+                        >
+                            <span>{selectedTopic.label}</span>
+                            <FiChevronDown aria-hidden="true" />
+                        </button>
+                        {topicMenuOpen && (
+                            <div
+                                className={styles.topicOptions}
+                                id="repository-topic-options"
+                                role="listbox"
+                                aria-label="Repository topics"
+                            >
+                                {topicOptions.map(({ topic, label, count }, index) => (
+                                    <button
+                                        className={styles.topicOption}
+                                        key={topic}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={topicFilter === topic}
+                                        tabIndex={-1}
+                                        ref={(element) => {
+                                            topicOptionRefs.current[index] = element;
+                                        }}
+                                        onClick={() => {
+                                            setTopicFilter(topic);
+                                            setTopicMenuOpen(false);
+                                            topicTriggerRef.current?.focus();
+                                        }}
+                                        onKeyDown={(event) => handleTopicOptionKeyDown(event, index)}
+                                    >
+                                        <span>{label}</span>
+                                        {count != null && (
+                                            <span className={styles.topicOptionCount}>
+                                                {count.toLocaleString()}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <span className={styles.topicSelectedCount} aria-live="polite">
                         {selectedTopicCount.toLocaleString()} {selectedTopicCount === 1 ? "repo" : "repos"}
                     </span>
