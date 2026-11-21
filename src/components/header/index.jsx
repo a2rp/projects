@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
 import { NavLink, useLocation } from "react-router-dom";
@@ -14,31 +14,18 @@ const repositoryUrl = "https://github.com/a2rp/projects";
 
 const Header = () => {
     const location = useLocation();
-    const headerRef = useRef(null);
     const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         if (!menuOpen) return undefined;
 
-        const scrollArea = document.getElementById("page-scroll-area");
-        const header = headerRef.current;
-        const previousScrollbarGap = header?.style.getPropertyValue("--menu-scrollbar-gap") || "";
-        const scrollbarGap = scrollArea ? scrollArea.offsetWidth - scrollArea.clientWidth : 0;
         const closeOnEscape = (event) => {
             if (event.key === "Escape") setMenuOpen(false);
         };
 
-        if (header) header.style.setProperty("--menu-scrollbar-gap", `${scrollbarGap}px`);
         document.addEventListener("keydown", closeOnEscape);
 
         return () => {
-            if (header) {
-                if (previousScrollbarGap) {
-                    header.style.setProperty("--menu-scrollbar-gap", previousScrollbarGap);
-                } else {
-                    header.style.removeProperty("--menu-scrollbar-gap");
-                }
-            }
             document.removeEventListener("keydown", closeOnEscape);
         };
     }, [menuOpen]);
@@ -48,7 +35,7 @@ const Header = () => {
     }, [location.pathname]);
 
     return (
-        <header className={styles.header} ref={headerRef}>
+        <header className={styles.header}>
             <div className={styles.headerMain}>
                 <NavLink
                     className={styles.brandLink}
