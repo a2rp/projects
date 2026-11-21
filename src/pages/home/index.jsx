@@ -129,7 +129,7 @@ const readCachedRepos = () => {
     }
 };
 
-const getRepoTimestamp = (repo) => Date.parse(repo?.updatedAt || repo?.pushedAt || "") || 0;
+const getRepoTimestamp = (repo) => Date.parse(repo?.pushedAt || repo?.updatedAt || "") || 0;
 
 const getRepositoryScreenshot = async (repo, signal) => {
     if (!repo?.defaultBranch) return "";
@@ -198,7 +198,7 @@ const fetchPortfolioRepos = async (signal, cachedRepos) => {
         .filter(isEligibleHeroRepo)
         .sort((a, b) => getRepoTimestamp(b) - getRepoTimestamp(a))[0];
     if (!latestRepo) throw new Error("No eligible GitHub repositories found");
-    const screenshotCheckedFor = latestRepo.updatedAt || latestRepo.pushedAt || "";
+    const screenshotCheckedFor = latestRepo.pushedAt || latestRepo.updatedAt || "";
     const cachedLatestRepo = cachedRepos.find(
         (repo) => repo.name.toLowerCase() === latestRepo.name.toLowerCase(),
     );
@@ -238,8 +238,12 @@ const Home = () => {
 
     useEffect(() => {
         const controller = new AbortController();
+        let isSyncing = false;
 
         const syncRepos = async () => {
+            if (isSyncing || controller.signal.aborted) return;
+            isSyncing = true;
+
             try {
                 const repos = await fetchPortfolioRepos(controller.signal, readCachedRepos());
                 if (controller.signal.aborted) return;
@@ -255,6 +259,8 @@ const Home = () => {
                 }
             } catch {
                 // Cached repository metadata keeps the hero useful while offline.
+            } finally {
+                isSyncing = false;
             }
         };
 
@@ -263,10 +269,20 @@ const Home = () => {
             setFailedScreenshot("");
             syncRepos();
         };
+        const handleVisible = () => {
+            if (document.visibilityState === "visible") syncRepos();
+        };
+        const refreshInterval = window.setInterval(syncRepos, 5 * 60 * 1000);
+
         window.addEventListener("online", handleOnline);
+        window.addEventListener("focus", syncRepos);
+        document.addEventListener("visibilitychange", handleVisible);
         return () => {
             controller.abort();
+            window.clearInterval(refreshInterval);
             window.removeEventListener("online", handleOnline);
+            window.removeEventListener("focus", syncRepos);
+            document.removeEventListener("visibilitychange", handleVisible);
         };
     }, []);
 
@@ -323,7 +339,7 @@ const Home = () => {
     const visibleHeroImage = heroScreenshot && failedScreenshot !== heroScreenshot
         ? heroScreenshot
         : heroImage;
-    const updatedDate = formatRepoDate(latestRepo?.updatedAt || latestRepo?.pushedAt);
+    const updatedDate = formatRepoDate(latestRepo?.pushedAt || latestRepo?.updatedAt);
 
     const filtered = useMemo(() => {
         const v = q.trim().toLowerCase();
