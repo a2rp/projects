@@ -88,7 +88,6 @@ const Header = () => {
                         aria-expanded={menuOpen}
                         aria-controls="header-menu"
                     >
-                        <span>Menu</span>
                         {menuOpen ? (
                             <FiX aria-hidden="true" />
                         ) : (

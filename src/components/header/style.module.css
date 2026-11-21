@@ -102,7 +102,6 @@
 .menuLink {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
     color: #aeb7c8;
     font-size: 14px;
     font-weight: 600;
