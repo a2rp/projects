@@ -93,12 +93,15 @@ const Search = () => {
     return (
         <div className={styles.wrapper}>
             <header className={styles.pageIntro}>
-                <p className={styles.eyebrow}>
-                    <span /> Project directory
-                </p>
-                <h1>Find a project</h1>
+                <div className={styles.introHeading}>
+                    <h1><span aria-hidden="true" />Projects</h1>
+                    <span className={styles.introCount}>
+                        {projects.length.toLocaleString()} PROJECTS
+                    </span>
+                </div>
                 <p className={styles.introCopy}>
-                    Search apps, experiments, and reusable UI tools by name, description, or technology.
+                    Explore {projects.length} portfolio projects across apps, experiments, and reusable UI tools.
+                    Search by name, description, or technology to find a project.
                 </p>
             </header>
 
@@ -170,7 +173,7 @@ const Search = () => {
             <section className={styles.resultsSection} aria-labelledby="results-heading">
                 <div className={styles.resultsHeading}>
                     <div>
-                        <h2 id="results-heading">Projects</h2>
+                        <h2 id="results-heading">Search results</h2>
                         <p aria-live="polite">
                             {results.length} {results.length === 1 ? "project" : "projects"} found
                         </p>
