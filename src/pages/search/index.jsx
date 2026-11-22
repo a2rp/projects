@@ -721,19 +721,14 @@ const Search = () => {
                                                 setFailedScreenshots((current) => new Set(current).add(repoName));
                                             }}
                                         />
+                                        <span className={styles.posterName}>
+                                            {exactRepositoryName}
+                                        </span>
                                         <span className={styles.posterIndex}>
                                             {String(pageStart + index).padStart(2, "0")}
                                         </span>
                                     </span>
                                     <span className={styles.cardInfo}>
-                                        <button
-                                            className={styles.projectName}
-                                            type="button"
-                                            onClick={() => setSelectedRepositoryName(repoName)}
-                                            title={exactRepositoryName}
-                                        >
-                                            {exactRepositoryName}
-                                        </button>
                                         <span className={styles.projectDescription} title={repository.desc}>
                                             {repository.desc}
                                         </span>

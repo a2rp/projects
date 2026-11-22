@@ -722,30 +722,37 @@
             transition: transform 350ms ease;
         }
 
+        .posterName,
         .posterIndex {
             position: absolute;
             z-index: 1;
             top: 10px;
-            max-width: calc(100% - 74px);
-            overflow: hidden;
             padding: 5px 7px;
             border: 1px solid rgb(221 239 227 / 20%);
             border-radius: 6px;
             color: #e4f3e8;
             background: rgb(5 11 7 / 76%);
-            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-            font-size: 12px;
-            letter-spacing: 0.08em;
-            text-overflow: ellipsis;
-            text-transform: uppercase;
-            white-space: nowrap;
             backdrop-filter: blur(8px);
+        }
+
+        .posterName {
+            left: 10px;
+            max-width: calc(100% - 74px);
+            color: #e4f3e8;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
         }
 
         .posterIndex {
             right: 10px;
             max-width: 48px;
             color: #b0c5b6;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
         }
 
         .cardInfo {
@@ -753,33 +760,6 @@
             min-width: 0;
             gap: 4px;
             padding: 0 2px;
-        }
-
-        .projectName {
-            display: block;
-            width: 100%;
-            overflow: hidden;
-            padding: 0;
-            border: 0;
-            color: #eef4ef;
-            background: transparent;
-            font: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-            text-align: left;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            cursor: pointer;
-
-            &:hover {
-                color: #a8edbd;
-            }
-
-            &:focus-visible {
-                outline: 2px solid #83c99f;
-                outline-offset: 2px;
-            }
         }
 
         .projectDescription {
