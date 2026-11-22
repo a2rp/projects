@@ -1,5 +1,7 @@
 # My Tech Stack
 
+Last updated: November 23, 2026
+
 ## Core Stack
 
 - MERN: MongoDB, Express.js, ReactJS, and Node.js
