@@ -32,6 +32,14 @@ const featuredProjectByRepoName = new Map(
 
 const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
 const excludedRepositoryNames = new Set(["a2rp"]);
+const formatRepositoryDate = (value) => {
+    if (!value || !Number.isFinite(Date.parse(value))) return "Not available";
+    return new Intl.DateTimeFormat("en", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    }).format(new Date(value));
+};
 
 const getPaginationItems = (currentPage, totalPages) => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
@@ -57,11 +65,19 @@ const Search = () => {
     const [sortOrder, setSortOrder] = useState("recent");
     const [pageSize, setPageSize] = useState(12);
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedRepositoryName, setSelectedRepositoryName] = useState("");
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
     const topicDropdownRef = useRef(null);
     const topicTriggerRef = useRef(null);
     const topicOptionRefs = useRef([]);
     const resultsSectionRef = useRef(null);
+    const modalRef = useRef(null);
+    const modalCloseButtonRef = useRef(null);
+    const repositoryCardRefs = useRef(new Map());
+    const selectedIndexRef = useRef(-1);
+    const resultsRef = useRef([]);
+    const selectedRepositoryNameRef = useRef("");
+    const modalWasOpenedRef = useRef(false);
     const { repos: githubRepos, screenshots } = useGitHubPortfolio();
 
     const visibleGithubRepos = useMemo(
@@ -208,10 +224,100 @@ const Search = () => {
     const pageEnd = Math.min(activePage * itemsPerPage, results.length);
     const paginatedResults = results.slice(pageStart - 1, pageEnd);
     const paginationItems = getPaginationItems(activePage, totalPages);
+    const selectedRepositoryIndex = results.findIndex((repository) => (
+        (repository.repoName || getProjectRepoName(repository)) === selectedRepositoryName
+    ));
+    const selectedRepository = selectedRepositoryIndex >= 0 ? results[selectedRepositoryIndex] : null;
+    const isModalOpen = Boolean(selectedRepositoryName);
+
+    const selectRepositoryAtIndex = (index) => {
+        const repository = results[index];
+        if (!repository) return;
+
+        setSelectedRepositoryName(repository.repoName || getProjectRepoName(repository));
+        setCurrentPage(Math.floor(index / itemsPerPage) + 1);
+    };
+
+    const closeRepositoryDetails = () => {
+        const repositoryName = selectedRepositoryNameRef.current;
+        modalWasOpenedRef.current = false;
+        setSelectedRepositoryName("");
+        window.requestAnimationFrame(() => repositoryCardRefs.current.get(repositoryName)?.focus());
+    };
+
+    const moveRepositoryDetails = (offset) => {
+        selectRepositoryAtIndex(selectedRepositoryIndex + offset);
+    };
+
+    useEffect(() => {
+        selectedIndexRef.current = selectedRepositoryIndex;
+        resultsRef.current = results;
+        selectedRepositoryNameRef.current = selectedRepositoryName;
+    }, [results, selectedRepositoryIndex, selectedRepositoryName]);
 
     useEffect(() => {
         if (currentPage > totalPages) setCurrentPage(totalPages);
     }, [currentPage, totalPages]);
+
+    useEffect(() => {
+        if (selectedRepositoryName && selectedRepositoryIndex < 0) {
+            modalWasOpenedRef.current = false;
+            setSelectedRepositoryName("");
+        }
+    }, [selectedRepositoryIndex, selectedRepositoryName]);
+
+    useEffect(() => {
+        if (!isModalOpen) return undefined;
+
+        const pageScrollArea = document.getElementById("page-scroll-area");
+        const previousOverflowY = pageScrollArea?.style.overflowY;
+        if (pageScrollArea) pageScrollArea.style.overflowY = "hidden";
+        if (!modalWasOpenedRef.current) modalCloseButtonRef.current?.focus();
+        modalWasOpenedRef.current = true;
+
+        const handleModalKeys = (event) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeRepositoryDetails();
+                return;
+            }
+
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                event.preventDefault();
+                const offset = event.key === "ArrowLeft" ? -1 : 1;
+                const index = selectedIndexRef.current + offset;
+                const repository = resultsRef.current[index];
+                if (repository) {
+                    setSelectedRepositoryName(repository.repoName || getProjectRepoName(repository));
+                    setCurrentPage(Math.floor(index / itemsPerPage) + 1);
+                }
+                return;
+            }
+
+            if (event.key === "Tab") {
+                const focusable = modalRef.current?.querySelectorAll(
+                    'button:not(:disabled), a[href]',
+                );
+                if (!focusable?.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        };
+
+        document.addEventListener("keydown", handleModalKeys);
+        return () => {
+            document.removeEventListener("keydown", handleModalKeys);
+            if (pageScrollArea) pageScrollArea.style.overflowY = previousOverflowY || "auto";
+        };
+    }, [isModalOpen]);
 
     const goToPage = (page) => {
         setCurrentPage(page);
@@ -225,6 +331,20 @@ const Search = () => {
         setSortOrder("recent");
         setCurrentPage(1);
     };
+
+    const selectedRepositoryNameForDisplay = selectedRepository?.repoName
+        || (selectedRepository && getProjectRepoName(selectedRepository));
+    const selectedRepositoryScreenshot = selectedRepositoryNameForDisplay
+        ? screenshots[selectedRepositoryNameForDisplay]
+        : "";
+    const selectedRepositoryImage = selectedRepositoryScreenshot
+        && !failedScreenshots.has(selectedRepositoryNameForDisplay)
+        ? selectedRepositoryScreenshot
+        : defaultProjectImage;
+    const selectedRepositorySource = selectedRepository?.code?.find((item) => item.url);
+    const selectedRepositoryTopics = selectedRepository
+        ? toUniqueList([...(selectedRepository.topics || []), ...(selectedRepository.tech || [])])
+        : [];
 
     return (
         <div className={styles.wrapper} id="search">
@@ -404,7 +524,6 @@ const Search = () => {
                     <>
                     <div className={styles.resultsGrid}>
                         {paginatedResults.map((repository, index) => {
-                            const source = repository.code?.find((item) => item.url);
                             const repoName = repository.repoName || getProjectRepoName(repository);
                             const screenshotUrl = screenshots[repoName];
                             const imageUrl = screenshotUrl && !failedScreenshots.has(repoName)
@@ -412,47 +531,55 @@ const Search = () => {
                                 : defaultProjectImage;
 
                             return (
-                                <article className={styles.projectCard} key={repoName || repository.name}>
-                                    <img
-                                        className={styles.projectBackdrop}
-                                        src={imageUrl}
-                                        alt=""
-                                        aria-hidden="true"
-                                        loading="lazy"
-                                        onError={() => {
-                                            if (!screenshotUrl || failedScreenshots.has(repoName)) return;
-                                            setFailedScreenshots((current) => new Set(current).add(repoName));
-                                        }}
-                                    />
-                                    <div className={styles.cardMeta}>
-                                        <span>{repository.category?.title || "Public repository"}</span>
-                                        <span>{String(pageStart + index).padStart(2, "0")}</span>
-                                    </div>
-                                    <h3>{repository.name}</h3>
-                                    <p className={styles.projectDescription}>{repository.desc}</p>
-
-                                    <div className={styles.techTags} aria-label="Technologies">
-                                        {(repository.tech || []).slice(0, 4).map((stack) => (
-                                            <span key={stack}>{stack}</span>
-                                        ))}
-                                        {repository.tech?.length > 4 && (
-                                            <span className={styles.moreTag}>+{repository.tech.length - 4}</span>
+                                <button
+                                    className={styles.projectCard}
+                                    type="button"
+                                    key={repoName || repository.name}
+                                    ref={(element) => {
+                                        if (element) repositoryCardRefs.current.set(repoName, element);
+                                        else repositoryCardRefs.current.delete(repoName);
+                                    }}
+                                    aria-label={`View details for ${repository.name}`}
+                                    onClick={() => setSelectedRepositoryName(repoName)}
+                                >
+                                    <span className={styles.projectPoster}>
+                                        <img
+                                            className={styles.projectPosterImage}
+                                            src={imageUrl}
+                                            alt=""
+                                            aria-hidden="true"
+                                            loading="lazy"
+                                            onError={() => {
+                                                if (!screenshotUrl || failedScreenshots.has(repoName)) return;
+                                                setFailedScreenshots((current) => new Set(current).add(repoName));
+                                            }}
+                                        />
+                                        <span className={styles.posterCategory}>
+                                            {repository.category?.title || "Public repository"}
+                                        </span>
+                                        <span className={styles.posterIndex}>
+                                            {String(pageStart + index).padStart(2, "0")}
+                                        </span>
+                                        <span className={styles.posterOpen} aria-hidden="true">
+                                            <FiArrowUpRight />
+                                        </span>
+                                        {!!repository.tech?.length && (
+                                            <span className={styles.posterTechTags}>
+                                                {repository.tech.slice(0, 2).map((stack) => (
+                                                    <span key={stack}>{stack}</span>
+                                                ))}
+                                            </span>
                                         )}
-                                    </div>
-
-                                    <div className={styles.cardActions}>
-                                        {repository.live && (
-                                            <a className={styles.primaryAction} href={repository.live} target="_blank" rel="noopener noreferrer">
-                                                Live project <FiExternalLink aria-hidden="true" />
-                                            </a>
-                                        )}
-                                        {source && (
-                                            <a className={styles.sourceAction} href={source.url} target="_blank" rel="noopener noreferrer" aria-label={`View ${repository.name} source code`}>
-                                                <FiGithub aria-hidden="true" /> Source <FiArrowUpRight aria-hidden="true" />
-                                            </a>
-                                        )}
-                                    </div>
-                                </article>
+                                    </span>
+                                    <span className={styles.cardInfo}>
+                                        <span className={styles.projectName} title={repository.name}>
+                                            {repository.name}
+                                        </span>
+                                        <span className={styles.projectDescription}>
+                                            {repository.desc}
+                                        </span>
+                                    </span>
+                                </button>
                             );
                         })}
                     </div>
@@ -529,6 +656,135 @@ const Search = () => {
                     </div>
                 )}
             </section>
+
+            {selectedRepository && (
+                <div
+                    className={styles.modalBackdrop}
+                    role="presentation"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) closeRepositoryDetails();
+                    }}
+                >
+                    <section
+                        className={styles.repositoryModal}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="repository-modal-title"
+                        aria-describedby="repository-modal-description"
+                        ref={modalRef}
+                    >
+                        <header className={styles.modalHeader}>
+                            <span>{selectedRepository.category?.title || "Public repository"}</span>
+                            <button
+                                className={styles.modalClose}
+                                type="button"
+                                ref={modalCloseButtonRef}
+                                onClick={closeRepositoryDetails}
+                                aria-label="Close repository details"
+                            >
+                                <FiX aria-hidden="true" />
+                            </button>
+                        </header>
+
+                        <div className={styles.modalBody}>
+                            <div className={styles.modalPoster}>
+                                <img
+                                    src={selectedRepositoryImage}
+                                    alt=""
+                                    aria-hidden="true"
+                                    onError={() => {
+                                        if (!selectedRepositoryScreenshot || failedScreenshots.has(selectedRepositoryNameForDisplay)) return;
+                                        setFailedScreenshots((current) => new Set(current).add(selectedRepositoryNameForDisplay));
+                                    }}
+                                />
+                                <span>{selectedRepositoryNameForDisplay}</span>
+                            </div>
+
+                            <div className={styles.modalContent}>
+                                <h2 id="repository-modal-title">{selectedRepository.name}</h2>
+                                <p className={styles.modalDescription} id="repository-modal-description">
+                                    {selectedRepository.desc}
+                                </p>
+
+                                <dl className={styles.repositoryFacts}>
+                                    <div>
+                                        <dt>Repository</dt>
+                                        <dd>{selectedRepositoryNameForDisplay}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Created</dt>
+                                        <dd>{formatRepositoryDate(selectedRepository.repo?.createdAt)}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Last updated</dt>
+                                        <dd>{formatRepositoryDate(selectedRepository.repo?.pushedAt || selectedRepository.repo?.updatedAt)}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Primary language</dt>
+                                        <dd>{selectedRepository.repo?.language || selectedRepository.tech?.[0] || "Not specified"}</dd>
+                                    </div>
+                                </dl>
+
+                                {selectedRepositoryTopics.length > 0 && (
+                                    <div className={styles.modalTopicSection}>
+                                        <h3>Technologies and topics</h3>
+                                        <div className={styles.modalTags}>
+                                            {selectedRepositoryTopics.map((topic) => (
+                                                <span key={topic}>{topic}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className={styles.modalActions}>
+                                    {selectedRepository.live && (
+                                        <a
+                                            className={styles.primaryAction}
+                                            href={selectedRepository.live}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Open live project <FiExternalLink aria-hidden="true" />
+                                        </a>
+                                    )}
+                                    {selectedRepositorySource && (
+                                        <a
+                                            className={styles.sourceAction}
+                                            href={selectedRepositorySource.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <FiGithub aria-hidden="true" /> View source code <FiArrowUpRight aria-hidden="true" />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <footer className={styles.modalNavigation}>
+                            <button
+                                className={styles.modalNavButton}
+                                type="button"
+                                disabled={selectedRepositoryIndex === 0}
+                                onClick={() => moveRepositoryDetails(-1)}
+                            >
+                                <FiChevronLeft aria-hidden="true" /> Previous
+                            </button>
+                            <span aria-live="polite">
+                                {selectedRepositoryIndex + 1} of {results.length}
+                            </span>
+                            <button
+                                className={styles.modalNavButton}
+                                type="button"
+                                disabled={selectedRepositoryIndex === results.length - 1}
+                                onClick={() => moveRepositoryDetails(1)}
+                            >
+                                Next <FiChevronRight aria-hidden="true" />
+                            </button>
+                        </footer>
+                    </section>
+                </div>
+            )}
         </div>
     );
 };
