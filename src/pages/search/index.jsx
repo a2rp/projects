@@ -107,6 +107,7 @@ const getPaginationItems = (currentPage, totalPages) => {
 const Search = () => {
     const [query, setQuery] = useState("");
     const [techStack, setTechStack] = useState("all");
+    const [techMenuOpen, setTechMenuOpen] = useState(false);
     const [topicFilter, setTopicFilter] = useState("all");
     const [topicMenuOpen, setTopicMenuOpen] = useState(false);
     const [sortOrder, setSortOrder] = useState("recent");
@@ -114,6 +115,9 @@ const Search = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedRepositoryName, setSelectedRepositoryName] = useState("");
     const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
+    const techDropdownRef = useRef(null);
+    const techTriggerRef = useRef(null);
+    const techOptionRefs = useRef([]);
     const topicDropdownRef = useRef(null);
     const topicTriggerRef = useRef(null);
     const topicOptionRefs = useRef([]);
@@ -204,6 +208,12 @@ const Search = () => {
 
         return [...TECH_STACK_OPTIONS, ...additionalStacks];
     }, [repositories]);
+    const techOptions = [
+        { value: "all", label: "All technologies" },
+        ...techStacks.map((stack) => ({ value: stack, label: stack })),
+    ];
+    const selectedTechIndex = Math.max(0, techOptions.findIndex(({ value }) => value === techStack));
+    const selectedTech = techOptions[selectedTechIndex];
 
     const selectedTopicCount = topicFilter === "all"
         ? visibleGithubRepos.length
@@ -234,6 +244,28 @@ const Search = () => {
         };
     }, [selectedTopicIndex, topicMenuOpen]);
 
+    useEffect(() => {
+        if (!techMenuOpen) return undefined;
+
+        techOptionRefs.current[selectedTechIndex]?.focus();
+
+        const closeOnOutsidePointer = (event) => {
+            if (!techDropdownRef.current?.contains(event.target)) setTechMenuOpen(false);
+        };
+        const closeOnEscape = (event) => {
+            if (event.key !== "Escape") return;
+            setTechMenuOpen(false);
+            techTriggerRef.current?.focus();
+        };
+
+        document.addEventListener("pointerdown", closeOnOutsidePointer);
+        document.addEventListener("keydown", closeOnEscape);
+        return () => {
+            document.removeEventListener("pointerdown", closeOnOutsidePointer);
+            document.removeEventListener("keydown", closeOnEscape);
+        };
+    }, [selectedTechIndex, techMenuOpen]);
+
     const handleTopicOptionKeyDown = (event, optionIndex) => {
         let nextIndex = optionIndex;
         if (event.key === "ArrowDown") nextIndex = Math.min(optionIndex + 1, topicOptions.length - 1);
@@ -244,6 +276,18 @@ const Search = () => {
 
         event.preventDefault();
         topicOptionRefs.current[nextIndex]?.focus();
+    };
+
+    const handleTechOptionKeyDown = (event, optionIndex) => {
+        let nextIndex = optionIndex;
+        if (event.key === "ArrowDown") nextIndex = Math.min(optionIndex + 1, techOptions.length - 1);
+        else if (event.key === "ArrowUp") nextIndex = Math.max(optionIndex - 1, 0);
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = techOptions.length - 1;
+        else return;
+
+        event.preventDefault();
+        techOptionRefs.current[nextIndex]?.focus();
     };
 
     const results = useMemo(() => {
@@ -531,18 +575,67 @@ const Search = () => {
                     </div>
 
                     <div className={styles.filterRow}>
-                        <label className={styles.selectControl}>
+                        <div className={styles.selectControl}>
                             <span><FiCode aria-hidden="true" /> Technology</span>
-                            <select className={styles.techSelect} value={techStack} onChange={(event) => {
-                                setTechStack(event.target.value);
-                                setCurrentPage(1);
-                            }}>
-                                <option value="all">All technologies</option>
-                                {techStacks.map((stack) => (
-                                    <option key={stack} value={stack}>{stack}</option>
-                                ))}
-                            </select>
-                        </label>
+                            <div
+                                className={styles.techDropdown}
+                                ref={techDropdownRef}
+                                onBlur={(event) => {
+                                    if (!event.currentTarget.contains(event.relatedTarget)) setTechMenuOpen(false);
+                                }}
+                            >
+                                <button
+                                    className={styles.techTrigger}
+                                    type="button"
+                                    ref={techTriggerRef}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={techMenuOpen}
+                                    aria-controls="repository-technology-options"
+                                    aria-label={`Filter by technology: ${selectedTech.label}`}
+                                    onClick={() => setTechMenuOpen((open) => !open)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "ArrowDown") {
+                                            event.preventDefault();
+                                            setTechMenuOpen(true);
+                                        }
+                                    }}
+                                >
+                                    <span>{selectedTech.label}</span>
+                                    <FiChevronDown aria-hidden="true" />
+                                </button>
+                                {techMenuOpen && (
+                                    <div
+                                        className={styles.techOptions}
+                                        id="repository-technology-options"
+                                        role="listbox"
+                                        aria-label="Repository technologies"
+                                    >
+                                        {techOptions.map(({ value, label }, index) => (
+                                            <button
+                                                className={styles.techOption}
+                                                key={value}
+                                                type="button"
+                                                role="option"
+                                                aria-selected={techStack === value}
+                                                tabIndex={-1}
+                                                ref={(element) => {
+                                                    techOptionRefs.current[index] = element;
+                                                }}
+                                                onClick={() => {
+                                                    setTechStack(value);
+                                                    setCurrentPage(1);
+                                                    setTechMenuOpen(false);
+                                                    techTriggerRef.current?.focus();
+                                                }}
+                                                onKeyDown={(event) => handleTechOptionKeyDown(event, index)}
+                                            >
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
                         <label className={styles.selectControl}>
                             <span><FiFilter aria-hidden="true" /> Sort by</span>

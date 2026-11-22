@@ -361,25 +361,119 @@
         }
     }
 
-    .selectControl select.techSelect {
-        border-color: #283c31;
-        background: #0b1410;
-        color: #d8e6dc;
-        color-scheme: dark;
+    .techDropdown {
+        position: relative;
+        width: 100%;
 
-        &:hover,
-        &:focus-visible {
-            border-color: #83c99f;
-        }
-
-        option {
-            background: #080c0a;
+        .techTrigger {
+            display: flex;
+            width: 100%;
+            min-height: 38px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 10px;
+            border: 1px solid #283c31;
+            border-radius: 8px;
+            outline: 0;
+            background: #0b1410;
             color: #d8e6dc;
+            font: inherit;
+            font-size: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+
+            &:hover,
+            &:focus-visible {
+                border-color: #83c99f;
+                box-shadow: 0 0 0 3px rgb(131 201 159 / 10%);
+            }
+
+            > span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            svg {
+                width: 15px;
+                height: 15px;
+                flex: 0 0 auto;
+                color: #a9b8ae;
+                transition: transform 150ms ease;
+            }
+
+            &[aria-expanded="true"] svg {
+                transform: rotate(180deg);
+            }
         }
 
-        option:checked {
-            background: #1b3526;
-            color: #c1efcf;
+        .techOptions {
+            position: absolute;
+            z-index: 40;
+            top: calc(100% + 5px);
+            right: 0;
+            left: 0;
+            max-height: min(420px, 60vh);
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 4px;
+            border: 1px solid #3a5144;
+            border-radius: 9px;
+            outline: 0;
+            background: #080c0a;
+            box-shadow: 0 14px 32px rgb(0 0 0 / 55%);
+            overscroll-behavior: contain;
+            scrollbar-color: #718f7c #111915;
+            scrollbar-width: thin;
+
+            &::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            &::-webkit-scrollbar-track {
+                border-radius: 8px;
+                background: #111915;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                border: 2px solid #111915;
+                border-radius: 8px;
+                background: #718f7c;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: #a0c5ad;
+            }
+        }
+
+        .techOption {
+            display: flex;
+            width: 100%;
+            min-height: 32px;
+            align-items: center;
+            padding: 6px 9px;
+            border: 0;
+            border-radius: 5px;
+            outline: 0;
+            background: transparent;
+            color: #d8e6dc;
+            font: inherit;
+            font-size: 12px;
+            text-align: left;
+            cursor: pointer;
+
+            &:hover,
+            &:focus-visible {
+                background: #15261c;
+                color: #f0f8f2;
+            }
+
+            &[aria-selected="true"] {
+                background: #1b3526;
+                color: #c1efcf;
+            }
         }
     }
 
