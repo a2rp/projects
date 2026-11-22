@@ -635,27 +635,6 @@
             color: #b0c5b6;
         }
 
-        .posterOpen {
-            position: absolute;
-            z-index: 1;
-            top: 50%;
-            right: 12px;
-            display: grid;
-            width: 36px;
-            height: 36px;
-            place-items: center;
-            transform: translateY(-50%);
-            border-radius: 50%;
-            color: #08120b;
-            background: #83d65c;
-            box-shadow: 0 5px 16px rgb(0 0 0 / 35%);
-
-            svg {
-                width: 17px;
-                height: 17px;
-            }
-        }
-
         .posterTechTags {
             position: absolute;
             z-index: 1;

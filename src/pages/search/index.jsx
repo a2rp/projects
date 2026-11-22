@@ -560,9 +560,6 @@ const Search = () => {
                                         <span className={styles.posterIndex}>
                                             {String(pageStart + index).padStart(2, "0")}
                                         </span>
-                                        <span className={styles.posterOpen} aria-hidden="true">
-                                            <FiArrowUpRight />
-                                        </span>
                                         {!!repository.tech?.length && (
                                             <span className={styles.posterTechTags}>
                                                 {repository.tech.slice(0, 2).map((stack) => (
