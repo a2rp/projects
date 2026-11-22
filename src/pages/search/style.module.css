@@ -547,7 +547,7 @@
         position: relative;
         display: flex;
         min-width: 0;
-        height: 252px;
+        height: 300px;
         flex-direction: column;
         gap: 9px;
         padding: 0;
