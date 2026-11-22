@@ -533,7 +533,7 @@ const Search = () => {
                     <div className={styles.filterRow}>
                         <label className={styles.selectControl}>
                             <span><FiCode aria-hidden="true" /> Technology</span>
-                            <select value={techStack} onChange={(event) => {
+                            <select className={styles.techSelect} value={techStack} onChange={(event) => {
                                 setTechStack(event.target.value);
                                 setCurrentPage(1);
                             }}>

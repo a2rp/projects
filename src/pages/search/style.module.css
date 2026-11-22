@@ -361,6 +361,28 @@
         }
     }
 
+    .selectControl select.techSelect {
+        border-color: #283c31;
+        background: #0b1410;
+        color: #d8e6dc;
+        color-scheme: dark;
+
+        &:hover,
+        &:focus-visible {
+            border-color: #83c99f;
+        }
+
+        option {
+            background: #080c0a;
+            color: #d8e6dc;
+        }
+
+        option:checked {
+            background: #1b3526;
+            color: #c1efcf;
+        }
+    }
+
     .resetButton {
         display: inline-flex;
         min-height: 38px;
