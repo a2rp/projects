@@ -525,6 +525,10 @@ const Search = () => {
                     <div className={styles.resultsGrid}>
                         {paginatedResults.map((repository, index) => {
                             const repoName = repository.repoName || getProjectRepoName(repository);
+                            const sourceUrl = repository.code?.find((item) => item.url)?.url || "";
+                            const exactRepositoryName = repository.repo?.name
+                                || sourceUrl.match(/github\.com\/[^/]+\/([^/?#]+)/i)?.[1]?.replace(/\.git$/i, "")
+                                || repository.name;
                             const screenshotUrl = screenshots[repoName];
                             const imageUrl = screenshotUrl && !failedScreenshots.has(repoName)
                                 ? screenshotUrl
@@ -539,7 +543,7 @@ const Search = () => {
                                         if (element) repositoryCardRefs.current.set(repoName, element);
                                         else repositoryCardRefs.current.delete(repoName);
                                     }}
-                                    aria-label={`${repository.name} repository`}
+                                    aria-label={`${exactRepositoryName} repository`}
                                     onClick={(event) => {
                                         if (event.target.closest("a, button")) return;
                                         setSelectedRepositoryName(repoName);
@@ -583,9 +587,13 @@ const Search = () => {
                                             className={styles.projectName}
                                             type="button"
                                             onClick={() => setSelectedRepositoryName(repoName)}
+                                            title={exactRepositoryName}
                                         >
-                                            {repository.name}
+                                            {exactRepositoryName}
                                         </button>
+                                        <span className={styles.projectDescription} title={repository.desc}>
+                                            {repository.desc}
+                                        </span>
                                         <span className={styles.repoDates}>
                                             <span className={styles.repoDate}>
                                                 <span className={styles.repoDateLabel}>Created</span>
@@ -607,9 +615,9 @@ const Search = () => {
                                             </span>
                                         </span>
                                         <span className={styles.cardLinks}>
-                                            {repository.code?.find((item) => item.url)?.url && (
+                                            {sourceUrl && (
                                                 <a
-                                                    href={repository.code.find((item) => item.url).url}
+                                                    href={sourceUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     onClick={(event) => event.stopPropagation()}
