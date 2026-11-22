@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { FaGithub } from "react-icons/fa";
-import { FiHome, FiMail, FiMenu, FiUser, FiX } from "react-icons/fi";
+import { FaCodepen, FaGithub } from "react-icons/fa";
+import { FiHome, FiMenu, FiX } from "react-icons/fi";
 import { NavLink, useLocation } from "react-router-dom";
 import styles from "./style.module.css";
 
 const navItems = [
     { label: "Home", to: "/", icon: FiHome },
-    { label: "About", to: "/about", icon: FiUser },
-    { label: "Contact", to: "/about#contact", icon: FiMail },
 ];
 
 const repositoryUrl = "https://github.com/a2rp/projects";
+const codePenUrl = "https://codepen.io/ash1198";
 
 const Header = () => {
     const location = useLocation();
@@ -70,6 +69,24 @@ const Header = () => {
                             </NavLink>
                         );
                     })}
+                    <a
+                        className={styles.navLink}
+                        href={repositoryUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <FaGithub aria-hidden="true" />
+                        <span>Repository</span>
+                    </a>
+                    <a
+                        className={styles.navLink}
+                        href={codePenUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <FaCodepen aria-hidden="true" />
+                        <span>CodePen</span>
+                    </a>
                 </nav>
 
                 <div className={styles.headerActions}>
@@ -135,6 +152,15 @@ const Header = () => {
                     onClick={() => setMenuOpen(false)}
                 >
                     <FaGithub aria-hidden="true" /> Repository
+                </a>
+                <a
+                    className={styles.mobileNavLink}
+                    href={codePenUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                >
+                    <FaCodepen aria-hidden="true" /> CodePen
                 </a>
             </nav>
         </header>

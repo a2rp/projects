@@ -2,7 +2,7 @@
     width: 100%;
     max-width: 1440px;
     margin: 0 auto;
-    padding: 34px 20px 64px;
+    padding: 34px 20px 28px;
     color: #e6e9f0;
 
     .pageIntro {
@@ -1253,7 +1253,7 @@
     }
 
     @media (max-width: 720px) {
-        padding: 26px 16px 48px;
+        padding: 26px 16px 24px;
 
         .modalBackdrop {
             padding: 10px;
@@ -1315,7 +1315,7 @@
     }
 
     @media (max-width: 540px) {
-        padding: 22px 12px 40px;
+        padding: 22px 12px 20px;
 
         .modalHeader {
             min-height: 50px;

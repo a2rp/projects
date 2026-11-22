@@ -8,6 +8,7 @@ import {
 } from "../../data/githubPortfolio";
 import { projects } from "../../data/projects";
 import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
+import AboutContact from "../../components/aboutContact";
 import Search from "../search";
 import styles from "./style.module.css";
 const HERO_EXCLUDED_REPOS = new Set(["a2rp", "projects"]);
@@ -167,6 +168,7 @@ const Home = () => {
                 </section>
 
                 <Search />
+                <AboutContact />
             </div>
         </>
     );
