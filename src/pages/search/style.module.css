@@ -722,7 +722,6 @@
             transition: transform 350ms ease;
         }
 
-        .posterCategory,
         .posterIndex {
             position: absolute;
             z-index: 1;
@@ -743,41 +742,10 @@
             backdrop-filter: blur(8px);
         }
 
-        .posterCategory {
-            left: 10px;
-        }
-
         .posterIndex {
             right: 10px;
             max-width: 48px;
             color: #b0c5b6;
-        }
-
-        .posterTechTags {
-            position: absolute;
-            z-index: 1;
-            right: 9px;
-            bottom: 10px;
-            left: 9px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            gap: 5px;
-
-            span {
-                max-width: 100%;
-                overflow: hidden;
-                padding: 4px 6px;
-                border: 1px solid rgb(128 210 154 / 45%);
-                border-radius: 6px;
-                color: #c7f1d1;
-                background: rgb(5 12 8 / 82%);
-                font-size: 14px;
-                line-height: 1;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                backdrop-filter: blur(8px);
-            }
         }
 
         .cardInfo {

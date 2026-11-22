@@ -721,19 +721,9 @@ const Search = () => {
                                                 setFailedScreenshots((current) => new Set(current).add(repoName));
                                             }}
                                         />
-                                        <span className={styles.posterCategory}>
-                                            {repository.category?.title || "Public repository"}
-                                        </span>
                                         <span className={styles.posterIndex}>
                                             {String(pageStart + index).padStart(2, "0")}
                                         </span>
-                                        {!!repository.tech?.length && (
-                                            <span className={styles.posterTechTags}>
-                                                {repository.tech.slice(0, 2).map((stack) => (
-                                                    <span key={stack}>{stack}</span>
-                                                ))}
-                                            </span>
-                                        )}
                                     </span>
                                     <span className={styles.cardInfo}>
                                         <button
