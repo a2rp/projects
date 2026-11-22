@@ -531,16 +531,26 @@ const Search = () => {
                                 : defaultProjectImage;
 
                             return (
-                                <button
+                                <article
                                     className={styles.projectCard}
-                                    type="button"
+                                    tabIndex={0}
                                     key={repoName || repository.name}
                                     ref={(element) => {
                                         if (element) repositoryCardRefs.current.set(repoName, element);
                                         else repositoryCardRefs.current.delete(repoName);
                                     }}
-                                    aria-label={`View details for ${repository.name}`}
-                                    onClick={() => setSelectedRepositoryName(repoName)}
+                                    aria-label={`${repository.name} repository`}
+                                    onClick={(event) => {
+                                        if (event.target.closest("a, button")) return;
+                                        setSelectedRepositoryName(repoName);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (event.target !== event.currentTarget) return;
+                                        if (event.key === "Enter" || event.key === " ") {
+                                            event.preventDefault();
+                                            setSelectedRepositoryName(repoName);
+                                        }
+                                    }}
                                 >
                                     <span className={styles.projectPoster}>
                                         <img
@@ -569,14 +579,57 @@ const Search = () => {
                                         )}
                                     </span>
                                     <span className={styles.cardInfo}>
-                                        <span className={styles.projectName} title={repository.name}>
+                                        <button
+                                            className={styles.projectName}
+                                            type="button"
+                                            onClick={() => setSelectedRepositoryName(repoName)}
+                                        >
                                             {repository.name}
+                                        </button>
+                                        <span className={styles.repoDates}>
+                                            <span className={styles.repoDate}>
+                                                <span className={styles.repoDateLabel}>Created</span>
+                                                <time
+                                                    className={styles.repoDateValue}
+                                                    dateTime={repository.repo?.createdAt || undefined}
+                                                >
+                                                    {formatRepositoryDate(repository.repo?.createdAt)}
+                                                </time>
+                                            </span>
+                                            <span className={styles.repoDate}>
+                                                <span className={styles.repoDateLabel}>Updated</span>
+                                                <time
+                                                    className={styles.repoDateValue}
+                                                    dateTime={repository.repo?.updatedAt || repository.repo?.pushedAt || undefined}
+                                                >
+                                                    {formatRepositoryDate(repository.repo?.updatedAt || repository.repo?.pushedAt)}
+                                                </time>
+                                            </span>
                                         </span>
-                                        <span className={styles.projectDescription}>
-                                            {repository.desc}
+                                        <span className={styles.cardLinks}>
+                                            {repository.code?.find((item) => item.url)?.url && (
+                                                <a
+                                                    href={repository.code.find((item) => item.url).url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(event) => event.stopPropagation()}
+                                                >
+                                                    <FiGithub aria-hidden="true" /> Repo <FiArrowUpRight aria-hidden="true" />
+                                                </a>
+                                            )}
+                                            {repository.live && (
+                                                <a
+                                                    href={repository.live}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(event) => event.stopPropagation()}
+                                                >
+                                                    <FiExternalLink aria-hidden="true" /> Live
+                                                </a>
+                                            )}
                                         </span>
                                     </span>
-                                </button>
+                                </article>
                             );
                         })}
                     </div>
