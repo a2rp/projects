@@ -7,6 +7,8 @@ const LEGACY_PROFILE_KEY = "projects-portfolio:github-profile:v1";
 const LEGACY_SCREENSHOTS_KEY = "projects-portfolio:repository-screenshots:v1";
 const REFRESH_AFTER = 6 * 60 * 60 * 1000;
 const HERO_EXCLUDED_REPOS = new Set(["a2rp", "projects"]);
+const SCREENSHOT_SELECTION_MODE = "latest-root-image-v1";
+const ROOT_IMAGE_PATTERN = /\.(png|jpe?g|webp|avif|gif|bmp|tiff?|svg)$/i;
 export const FALLBACK_PUBLIC_REPO_COUNT = 477;
 
 let refreshInFlight;
@@ -129,39 +131,80 @@ const fetchRelevantRepos = async (cachedRepos) => {
 
 const isHeroRepo = (repo) => !HERO_EXCLUDED_REPOS.has(repo?.name?.toLowerCase());
 
+const getScreenshotRepos = (repos) => {
+    const screenshotRepos = new Map(
+        projects
+            .map((project) => repos.find((repo) => repo.name.toLowerCase() === getProjectRepoName(project)))
+            .filter(Boolean)
+            .map((repo) => [repo.name.toLowerCase(), repo]),
+    );
+    const latestRepo = [...repos]
+        .filter(isHeroRepo)
+        .sort((first, second) => getRepoTimestamp(second) - getRepoTimestamp(first))[0];
+
+    if (latestRepo) screenshotRepos.set(latestRepo.name.toLowerCase(), latestRepo);
+    return screenshotRepos;
+};
+
+const screenshotSelectionNeedsRefresh = (cached) => [...getScreenshotRepos(cached.repos).keys()]
+    .some((repoName) => cached.screenshotChecks[repoName]?.selectionMode !== SCREENSHOT_SELECTION_MODE);
+
 const findScreenshotUrl = async (repo) => {
-    if (!repo?.defaultBranch) return "";
+    if (!repo?.defaultBranch) return { screenshotUrl: "", checked: false };
 
     try {
         const tree = await requestGitHubJson(
             `https://api.github.com/repos/${GITHUB_OWNER}/${repo.name}/git/trees/${encodeURIComponent(repo.defaultBranch)}?recursive=1`,
         );
-        const screenshot = (tree.tree || [])
-            .filter((item) => {
-                if (item.type !== "blob" || !/\.(png|jpe?g|webp|avif|gif)$/i.test(item.path)) return false;
-                const path = item.path.toLowerCase();
-                const isPortfolioLogo = repo.name.toLowerCase() === "projects"
-                    && /(^|\/)public\/preview\.png$/.test(path);
-                if (isPortfolioLogo || /logo|icon|favicon/.test(path)) return false;
+        const rootImages = (tree.tree || []).filter((item) => (
+            item.type === "blob"
+            && typeof item.path === "string"
+            && !item.path.includes("/")
+            && ROOT_IMAGE_PATTERN.test(item.path)
+        ));
 
-                return /screenshot|screen-shot/.test(path)
-                    || /(^|\/)screenshots?\//.test(path)
-                    || /(^|[._/-])(preview|hero|banner|cover|og-image)([._/-]|$)/.test(path);
-            })
-            .sort((first, second) => {
-                const score = (path) => (
-                    (/screenshots?\//i.test(path) ? 4 : 0)
-                    + (/screenshot|screen-shot/i.test(path) ? 3 : 0)
-                    + (/preview|hero|banner|cover|og-image/i.test(path) ? 1 : 0)
-                );
-                return score(second.path) - score(first.path);
-            })[0];
+        if (rootImages.length === 0) return { screenshotUrl: "", checked: true };
 
-        if (!screenshot) return "";
-        const encodedPath = screenshot.path.split("/").map(encodeURIComponent).join("/");
-        return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${repo.name}/${encodeURIComponent(repo.defaultBranch)}/${encodedPath}`;
+        let latestImage = rootImages[0];
+        if (rootImages.length > 1) {
+            const imageCommits = [];
+            for (let index = 0; index < rootImages.length; index += 4) {
+                const batch = await Promise.all(rootImages.slice(index, index + 4).map(async (image) => {
+                    try {
+                        const commits = await requestGitHubJson(
+                            `https://api.github.com/repos/${GITHUB_OWNER}/${repo.name}/commits?path=${encodeURIComponent(image.path)}&per_page=1`,
+                        );
+                        const commit = commits[0]?.commit;
+                        const committedAt = Date.parse(commit?.committer?.date || commit?.author?.date || "");
+                        return {
+                            image,
+                            committedAt: Number.isFinite(committedAt) ? committedAt : 0,
+                            checked: Number.isFinite(committedAt),
+                        };
+                    } catch {
+                        return { image, committedAt: 0, checked: false };
+                    }
+                }));
+                imageCommits.push(...batch);
+            }
+
+            if (imageCommits.some((entry) => !entry.checked)) {
+                return { screenshotUrl: "", checked: false };
+            }
+
+            latestImage = imageCommits.sort((first, second) => (
+                second.committedAt - first.committedAt
+                || first.image.path.localeCompare(second.image.path)
+            ))[0].image;
+        }
+
+        const encodedPath = latestImage.path.split("/").map(encodeURIComponent).join("/");
+        return {
+            screenshotUrl: `https://raw.githubusercontent.com/${GITHUB_OWNER}/${repo.name}/${encodeURIComponent(repo.defaultBranch)}/${encodedPath}`,
+            checked: true,
+        };
     } catch {
-        return "";
+        return { screenshotUrl: "", checked: false };
     }
 };
 
@@ -182,32 +225,25 @@ const refreshPortfolioData = async (cached) => {
     }
 
     const previousChecks = cached.screenshotChecks || {};
-    const latestRepo = repos
-        .filter(isHeroRepo)
-        .sort((first, second) => getRepoTimestamp(second) - getRepoTimestamp(first))[0];
-    const screenshotRepos = new Map(
-        projects
-            .map((project) => repos.find((repo) => repo.name.toLowerCase() === getProjectRepoName(project)))
-            .filter(Boolean)
-            .map((repo) => [repo.name.toLowerCase(), repo]),
-    );
-    if (latestRepo) screenshotRepos.set(latestRepo.name.toLowerCase(), latestRepo);
+    const screenshotRepos = getScreenshotRepos(repos);
 
     const checkEntries = await Promise.all([...screenshotRepos].map(async ([repoName, repo]) => {
         const previous = previousChecks[repoName];
         const checkedFor = repo.pushedAt || repo.updatedAt || "";
         const screenshotIsCurrent = previous
             && previous.checkedFor === checkedFor
-            && previous.defaultBranch === repo.defaultBranch;
+            && previous.defaultBranch === repo.defaultBranch
+            && previous.selectionMode === SCREENSHOT_SELECTION_MODE;
 
         if (screenshotIsCurrent) return [repoName, previous];
 
-        const screenshotUrl = await findScreenshotUrl(repo);
+        const result = await findScreenshotUrl(repo);
         return [repoName, {
-            screenshotUrl: screenshotUrl || previous?.screenshotUrl || "",
+            screenshotUrl: result.checked ? result.screenshotUrl : previous?.screenshotUrl || "",
             checkedFor,
             defaultBranch: repo.defaultBranch,
             checkedAt: new Date().toISOString(),
+            selectionMode: SCREENSHOT_SELECTION_MODE,
         }];
     }));
 
@@ -239,7 +275,9 @@ const refreshPortfolioData = async (cached) => {
 export const syncGitHubPortfolio = () => {
     const cached = readStoredData();
     const syncedAt = Date.parse(cached.syncedAt || "");
-    const cacheIsFresh = Number.isFinite(syncedAt) && Date.now() - syncedAt < REFRESH_AFTER;
+    const cacheIsFresh = Number.isFinite(syncedAt)
+        && Date.now() - syncedAt < REFRESH_AFTER
+        && !screenshotSelectionNeedsRefresh(cached);
 
     if (cacheIsFresh) return Promise.resolve(readCachedGitHubPortfolio());
     if (refreshInFlight) return refreshInFlight;
