@@ -32,6 +32,53 @@ const featuredProjectByRepoName = new Map(
 
 const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
 const excludedRepositoryNames = new Set(["a2rp"]);
+const TECH_STACK_OPTIONS = [
+    "MERN",
+    "MongoDB",
+    "Express.js",
+    "ReactJS",
+    "Node.js",
+    "JavaScript",
+    "Angular",
+    "HTML",
+    "CSS",
+    "SCSS",
+    "Material UI",
+    "Chakra UI",
+    "GSAP",
+    "Framer Motion",
+    "DataTables",
+    "Nest.js",
+    "Java",
+    "Spring Boot",
+    "PHP",
+    "Laravel",
+    "CodeIgniter",
+    "ASP.NET",
+    "PostgreSQL",
+    "Microsoft SQL Server",
+    "Oracle",
+    "Apache Derby",
+    "AWS",
+    "Linux",
+    "Android",
+    "Docker",
+    "FileZilla",
+    "C",
+    "C++",
+];
+const normalizeTechnology = (value) => value.toLowerCase().replace(/[^a-z0-9+#]/g, "");
+const technologyAliases = {
+    "expressjs": ["expressjs", "express"],
+    "reactjs": ["reactjs", "react"],
+    "nodejs": ["nodejs", "node"],
+    "nestjs": ["nestjs", "nest"],
+    "microsoftsqlserver": ["microsoftsqlserver", "sqlserver", "mssqlserver", "mssql"],
+};
+const getTechnologyTerms = (technology) => {
+    const normalized = normalizeTechnology(technology);
+    return technologyAliases[normalized] || [normalized];
+};
 const formatRepositoryDate = (value) => {
     if (!value || !Number.isFinite(Date.parse(value))) return "Not available";
     return new Intl.DateTimeFormat("en", {
@@ -145,9 +192,18 @@ const Search = () => {
             .sort((first, second) => first.label.localeCompare(second.label));
     }, [visibleGithubRepos]);
 
-    const techStacks = useMemo(() => toUniqueList(
-        repositories.flatMap((repository) => repository.tech || []),
-    ).sort((first, second) => first.localeCompare(second)), [repositories]);
+    const techStacks = useMemo(() => {
+        const repositoryStacks = toUniqueList(
+            repositories.flatMap((repository) => repository.tech || []),
+        );
+        const additionalStacks = repositoryStacks
+            .filter((stack) => !TECH_STACK_OPTIONS.some((technology) => (
+                getTechnologyTerms(technology).includes(normalizeTechnology(stack))
+            )))
+            .sort((first, second) => first.localeCompare(second));
+
+        return [...TECH_STACK_OPTIONS, ...additionalStacks];
+    }, [repositories]);
 
     const selectedTopicCount = topicFilter === "all"
         ? visibleGithubRepos.length
@@ -204,7 +260,11 @@ const Search = () => {
                 ].join(" ").toLowerCase();
 
                 const matchesQuery = !normalizedQuery || searchableContent.includes(normalizedQuery);
-                const matchesTechStack = techStack === "all" || repository.tech?.includes(techStack);
+                const normalizedRepositoryTech = (repository.tech || []).map(normalizeTechnology);
+                const technologyTerms = getTechnologyTerms(techStack);
+                const matchesTechStack = techStack === "all"
+                    || technologyTerms.some((term) => normalizedRepositoryTech.includes(term))
+                    || (techStack === "MERN" && normalizeTechnology(repository.desc || "").includes("mern"));
                 const matchesTopic = topicFilter === "all" || repository.topics?.includes(topicFilter);
 
                 return matchesQuery && matchesTechStack && matchesTopic;
