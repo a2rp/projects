@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+    ensureRepoScreenshot,
     readCachedGitHubPortfolio,
     syncGitHubPortfolio,
 } from "../data/githubPortfolio";
@@ -32,6 +33,24 @@ const useGitHubPortfolio = () => {
     }, []);
 
     const refreshNow = useCallback(() => runSync(true), [runSync]);
+
+    const ensureScreenshot = useCallback(async (repo) => {
+        const result = await ensureRepoScreenshot(repo);
+        if (!result.checked || !isMounted.current || !repo?.name) return result;
+
+        const repoName = repo.name.toLowerCase();
+        setPortfolio((current) => {
+            if ((current.screenshots[repoName] || "") === result.screenshotUrl) return current;
+
+            const screenshots = { ...current.screenshots };
+            if (result.screenshotUrl) screenshots[repoName] = result.screenshotUrl;
+            else delete screenshots[repoName];
+
+            return { ...current, screenshots };
+        });
+
+        return result;
+    }, []);
 
     useEffect(() => {
         isMounted.current = true;
@@ -66,6 +85,7 @@ const useGitHubPortfolio = () => {
         isFetching,
         refreshError,
         refreshNow,
+        ensureScreenshot,
     };
 };
 

@@ -1,5 +1,3 @@
-import { projects } from "./projects";
-
 export const GITHUB_OWNER = "a2rp";
 const CACHE_KEY = "projects-portfolio:github-data:v1";
 const LEGACY_REPOS_KEY = "projects-portfolio:github-repos:v1";
@@ -7,11 +5,12 @@ const LEGACY_PROFILE_KEY = "projects-portfolio:github-profile:v1";
 const LEGACY_SCREENSHOTS_KEY = "projects-portfolio:repository-screenshots:v1";
 const REFRESH_AFTER = 6 * 60 * 60 * 1000;
 const HIDDEN_REPO_NAMES = new Set(["a2rp"]);
-const SCREENSHOT_SELECTION_MODE = "latest-root-image-v1";
+const SCREENSHOT_SELECTION_MODE = "latest-root-image-v2";
 const ROOT_IMAGE_PATTERN = /\.(png|jpe?g|webp|avif|gif|bmp|tiff?|svg)$/i;
 export const FALLBACK_PUBLIC_REPO_COUNT = 477;
 
 let refreshInFlight;
+const screenshotRequestsInFlight = new Map();
 
 export const getProjectRepoName = (project) => {
     const repoUrl = project.code?.find((item) => item.url)?.url || "";
@@ -140,24 +139,6 @@ const fetchRelevantRepos = async (cachedRepos) => {
     return [...reposByName.values()];
 };
 
-const getScreenshotRepos = (repos) => {
-    const screenshotRepos = new Map(
-        projects
-            .map((project) => repos.find((repo) => repo.name.toLowerCase() === getProjectRepoName(project)))
-            .filter(Boolean)
-            .map((repo) => [repo.name.toLowerCase(), repo]),
-    );
-    const latestRepo = [...repos]
-        .filter(isPortfolioRepo)
-        .sort(compareReposByActivity)[0];
-
-    if (latestRepo) screenshotRepos.set(latestRepo.name.toLowerCase(), latestRepo);
-    return screenshotRepos;
-};
-
-const screenshotSelectionNeedsRefresh = (cached) => [...getScreenshotRepos(cached.repos).keys()]
-    .some((repoName) => cached.screenshotChecks[repoName]?.selectionMode !== SCREENSHOT_SELECTION_MODE);
-
 const findScreenshotUrl = async (repo) => {
     if (!repo?.defaultBranch) return { screenshotUrl: "", checked: false };
 
@@ -217,6 +198,66 @@ const findScreenshotUrl = async (repo) => {
     }
 };
 
+const storePortfolioData = (data) => {
+    if (typeof window === "undefined") return;
+
+    try {
+        window.localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    } catch {
+        // Keep fetched data in this page session when browser storage is unavailable.
+    }
+};
+
+export const ensureRepoScreenshot = (repo) => {
+    const normalizedRepo = repo?.name ? normalizeRepo(repo) : null;
+    if (!normalizedRepo) return Promise.resolve({ screenshotUrl: "", checked: true });
+
+    const repoName = normalizedRepo.name.toLowerCase();
+    const cached = readStoredData();
+    const previous = cached.screenshotChecks[repoName];
+    const checkedFor = normalizedRepo.pushedAt || normalizedRepo.updatedAt || "";
+    const screenshotIsCurrent = previous
+        && previous.checkedFor === checkedFor
+        && previous.defaultBranch === normalizedRepo.defaultBranch
+        && previous.selectionMode === SCREENSHOT_SELECTION_MODE;
+
+    if (screenshotIsCurrent) {
+        return Promise.resolve({ screenshotUrl: previous.screenshotUrl || "", checked: true });
+    }
+
+    if (screenshotRequestsInFlight.has(repoName)) {
+        return screenshotRequestsInFlight.get(repoName);
+    }
+
+    const request = findScreenshotUrl(normalizedRepo)
+        .then((result) => {
+            if (!result.checked) {
+                return { screenshotUrl: previous?.screenshotUrl || "", checked: false };
+            }
+
+            const latestCache = readStoredData();
+            storePortfolioData({
+                ...latestCache,
+                screenshotChecks: {
+                    ...latestCache.screenshotChecks,
+                    [repoName]: {
+                        screenshotUrl: result.screenshotUrl,
+                        checkedFor,
+                        defaultBranch: normalizedRepo.defaultBranch,
+                        checkedAt: new Date().toISOString(),
+                        selectionMode: SCREENSHOT_SELECTION_MODE,
+                    },
+                },
+            });
+
+            return result;
+        })
+        .finally(() => screenshotRequestsInFlight.delete(repoName));
+
+    screenshotRequestsInFlight.set(repoName, request);
+    return request;
+};
+
 const refreshPortfolioData = async (cached) => {
     const [profileResult, reposResult] = await Promise.allSettled([
         requestGitHubJson(`https://api.github.com/users/${GITHUB_OWNER}`),
@@ -233,41 +274,15 @@ const refreshPortfolioData = async (cached) => {
         throw reposResult.reason;
     }
 
-    const previousChecks = cached.screenshotChecks || {};
-    const screenshotRepos = getScreenshotRepos(repos);
-
-    const checkEntries = await Promise.all([...screenshotRepos].map(async ([repoName, repo]) => {
-        const previous = previousChecks[repoName];
-        const checkedFor = repo.pushedAt || repo.updatedAt || "";
-        const screenshotIsCurrent = previous
-            && previous.checkedFor === checkedFor
-            && previous.defaultBranch === repo.defaultBranch
-            && previous.selectionMode === SCREENSHOT_SELECTION_MODE;
-
-        if (screenshotIsCurrent) return [repoName, previous];
-
-        const result = await findScreenshotUrl(repo);
-        return [repoName, {
-            screenshotUrl: result.checked ? result.screenshotUrl : previous?.screenshotUrl || "",
-            checkedFor,
-            defaultBranch: repo.defaultBranch,
-            checkedAt: new Date().toISOString(),
-            selectionMode: SCREENSHOT_SELECTION_MODE,
-        }];
-    }));
-
+    const latestCache = readStoredData();
     const next = {
         publicRepoCount,
         repos,
-        screenshotChecks: { ...previousChecks, ...Object.fromEntries(checkEntries) },
+        screenshotChecks: latestCache.screenshotChecks || cached.screenshotChecks || {},
         syncedAt: new Date().toISOString(),
     };
 
-    try {
-        window.localStorage.setItem(CACHE_KEY, JSON.stringify(next));
-    } catch {
-        // Keep refreshed data in this page session when browser storage is unavailable.
-    }
+    storePortfolioData(next);
 
     return {
         publicRepoCount: next.publicRepoCount,
@@ -285,8 +300,7 @@ export const syncGitHubPortfolio = ({ force = false } = {}) => {
     const cached = readStoredData();
     const syncedAt = Date.parse(cached.syncedAt || "");
     const cacheIsFresh = Number.isFinite(syncedAt)
-        && Date.now() - syncedAt < REFRESH_AFTER
-        && !screenshotSelectionNeedsRefresh(cached);
+        && Date.now() - syncedAt < REFRESH_AFTER;
 
     if (!force && cacheIsFresh) return Promise.resolve(readCachedGitHubPortfolio());
     if (refreshInFlight) return refreshInFlight;

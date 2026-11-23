@@ -47,6 +47,7 @@ const Home = () => {
         isFetching,
         refreshError,
         refreshNow,
+        ensureScreenshot,
     } = useGitHubPortfolio();
 
     const latestRepo = useMemo(
@@ -79,6 +80,10 @@ const Home = () => {
         ? heroScreenshot
         : heroImage;
     const activityDate = formatRepoDate(getRepoActivityDate(latestRepo));
+
+    useEffect(() => {
+        if (latestRepo) void ensureScreenshot(latestRepo);
+    }, [ensureScreenshot, latestRepo, syncedAt]);
 
     useEffect(() => {
         if (location.hash !== "#search") return;

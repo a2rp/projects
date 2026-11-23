@@ -116,7 +116,7 @@ const Search = () => {
     const [pageSize, setPageSize] = useState(12);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedRepositoryName, setSelectedRepositoryName] = useState("");
-    const [failedScreenshots, setFailedScreenshots] = useState(() => new Set());
+    const [failedScreenshots, setFailedScreenshots] = useState(() => new Map());
     const techDropdownRef = useRef(null);
     const techTriggerRef = useRef(null);
     const techOptionRefs = useRef([]);
@@ -127,11 +127,17 @@ const Search = () => {
     const modalRef = useRef(null);
     const modalCloseButtonRef = useRef(null);
     const repositoryCardRefs = useRef(new Map());
+    const attemptedScreenshotChecks = useRef(new Set());
     const selectedIndexRef = useRef(-1);
     const resultsRef = useRef([]);
     const selectedRepositoryNameRef = useRef("");
     const modalWasOpenedRef = useRef(false);
-    const { repos: githubRepos, screenshots } = useGitHubPortfolio();
+    const {
+        repos: githubRepos,
+        screenshots,
+        syncedAt,
+        ensureScreenshot,
+    } = useGitHubPortfolio();
 
     const visibleGithubRepos = useMemo(
         () => githubRepos.filter(isPortfolioRepo),
@@ -328,8 +334,64 @@ const Search = () => {
     const activePage = Math.min(currentPage, totalPages);
     const pageStart = results.length ? (activePage - 1) * itemsPerPage + 1 : 0;
     const pageEnd = Math.min(activePage * itemsPerPage, results.length);
-    const paginatedResults = results.slice(pageStart - 1, pageEnd);
+    const paginatedResults = useMemo(
+        () => results.slice(pageStart - 1, pageEnd),
+        [pageEnd, pageStart, results],
+    );
     const paginationItems = getPaginationItems(activePage, totalPages);
+
+    useEffect(() => {
+        const requestScreenshotOnce = (repository) => {
+            const repoName = repository.name.toLowerCase();
+            const attemptKey = `${repoName}:${getRepoActivityDate(repository)}:${syncedAt}`;
+            if (attemptedScreenshotChecks.current.has(attemptKey)) return Promise.resolve();
+
+            attemptedScreenshotChecks.current.add(attemptKey);
+            return ensureScreenshot(repository);
+        };
+
+        const cardsByElement = new Map();
+        paginatedResults.forEach((repository) => {
+            const repoName = repository.repoName || getProjectRepoName(repository);
+            if (!repository.repo || screenshots[repoName]) return;
+
+            const card = repositoryCardRefs.current.get(repoName);
+            if (card) cardsByElement.set(card, repository.repo);
+        });
+
+        if (cardsByElement.size === 0) return undefined;
+
+        if (typeof IntersectionObserver === "undefined") {
+            let cancelled = false;
+            const loadFirstVisiblePage = async () => {
+                for (const repository of [...cardsByElement.values()].slice(0, 12)) {
+                    if (cancelled) return;
+                    await requestScreenshotOnce(repository);
+                }
+            };
+            void loadFirstVisiblePage();
+
+            return () => {
+                cancelled = true;
+            };
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                observer.unobserve(entry.target);
+                const repository = cardsByElement.get(entry.target);
+                if (repository) requestScreenshotOnce(repository);
+            });
+        }, { rootMargin: "240px" });
+
+        cardsByElement.forEach((_, card) => observer.observe(card));
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [ensureScreenshot, paginatedResults, screenshots, syncedAt]);
+
     const selectedRepositoryIndex = results.findIndex((repository) => (
         (repository.repoName || getProjectRepoName(repository)) === selectedRepositoryName
     ));
@@ -444,7 +506,7 @@ const Search = () => {
         ? screenshots[selectedRepositoryNameForDisplay]
         : "";
     const selectedRepositoryImage = selectedRepositoryScreenshot
-        && !failedScreenshots.has(selectedRepositoryNameForDisplay)
+        && failedScreenshots.get(selectedRepositoryNameForDisplay) !== selectedRepositoryScreenshot
         ? selectedRepositoryScreenshot
         : defaultProjectImage;
     const selectedRepositorySource = selectedRepository?.code?.find((item) => item.url);
@@ -685,7 +747,7 @@ const Search = () => {
                                 || sourceUrl.match(/github\.com\/[^/]+\/([^/?#]+)/i)?.[1]?.replace(/\.git$/i, "")
                                 || repository.name;
                             const screenshotUrl = screenshots[repoName];
-                            const imageUrl = screenshotUrl && !failedScreenshots.has(repoName)
+                            const imageUrl = screenshotUrl && failedScreenshots.get(repoName) !== screenshotUrl
                                 ? screenshotUrl
                                 : defaultProjectImage;
 
@@ -719,8 +781,8 @@ const Search = () => {
                                             aria-hidden="true"
                                             loading="lazy"
                                             onError={() => {
-                                                if (!screenshotUrl || failedScreenshots.has(repoName)) return;
-                                                setFailedScreenshots((current) => new Set(current).add(repoName));
+                                                if (!screenshotUrl || failedScreenshots.get(repoName) === screenshotUrl) return;
+                                                setFailedScreenshots((current) => new Map(current).set(repoName, screenshotUrl));
                                             }}
                                         />
                                         <span className={styles.posterName}>
@@ -891,8 +953,12 @@ const Search = () => {
                                     alt=""
                                     aria-hidden="true"
                                     onError={() => {
-                                        if (!selectedRepositoryScreenshot || failedScreenshots.has(selectedRepositoryNameForDisplay)) return;
-                                        setFailedScreenshots((current) => new Set(current).add(selectedRepositoryNameForDisplay));
+                                        if (!selectedRepositoryScreenshot
+                                            || failedScreenshots.get(selectedRepositoryNameForDisplay) === selectedRepositoryScreenshot) return;
+                                        setFailedScreenshots((current) => new Map(current).set(
+                                            selectedRepositoryNameForDisplay,
+                                            selectedRepositoryScreenshot,
+                                        ));
                                     }}
                                 />
                                 <span>{selectedRepositoryNameForDisplay}</span>
