@@ -26,12 +26,24 @@ const formatRepoDate = (value) => {
     }).format(new Date(value));
 };
 
+const formatFetchedDateTime = (value) => {
+    if (!value || !Number.isFinite(Date.parse(value))) return "Not fetched yet";
+    return new Intl.DateTimeFormat(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(new Date(value));
+};
+
 const Home = () => {
     const [failedScreenshot, setFailedScreenshot] = useState("");
     const location = useLocation();
     const {
         repos: repoUpdates,
         screenshots,
+        syncedAt,
         isFetching,
         refreshError,
         refreshNow,
@@ -161,23 +173,7 @@ const Home = () => {
                             >
                                 View source code
                             </a>
-                            <button
-                                className={styles.refreshAction}
-                                type="button"
-                                onClick={refreshNow}
-                                disabled={isFetching}
-                                aria-busy={isFetching}
-                                aria-label={isFetching ? "Fetching GitHub projects" : "Refresh GitHub projects"}
-                            >
-                                {isFetching ? (
-                                    <span className={styles.refreshSpinner} aria-hidden="true" />
-                                ) : (
-                                    <FiRefreshCw aria-hidden="true" />
-                                )}
-                                <span>{isFetching ? "Fetching…" : "Refresh GitHub data"}</span>
-                            </button>
                         </div>
-                        {refreshError && <p className={styles.refreshError} role="status">{refreshError}</p>}
 
                         <div className={styles.heroTech} role="group" aria-label="Project technology stack">
                             <span className={styles.heroTechLabel}>Built with</span>
@@ -189,6 +185,32 @@ const Home = () => {
                         </div>
                     </div>
                 </section>
+
+                <div className={styles.syncBar}>
+                    <div className={styles.syncMeta}>
+                        <p className={styles.lastFetched} aria-live="polite">
+                            <span className={styles.syncIndicator} aria-hidden="true" />
+                            <span>Last fetched</span>
+                            <time dateTime={syncedAt || undefined}>{formatFetchedDateTime(syncedAt)}</time>
+                        </p>
+                        {refreshError && <p className={styles.refreshError} role="status">{refreshError}</p>}
+                    </div>
+                    <button
+                        className={styles.refreshAction}
+                        type="button"
+                        onClick={refreshNow}
+                        disabled={isFetching}
+                        aria-busy={isFetching}
+                        aria-label={isFetching ? "Fetching GitHub projects" : "Refresh GitHub projects"}
+                    >
+                        {isFetching ? (
+                            <span className={styles.refreshSpinner} aria-hidden="true" />
+                        ) : (
+                            <FiRefreshCw aria-hidden="true" />
+                        )}
+                        <span>{isFetching ? "Fetching…" : "Refresh GitHub data"}</span>
+                    </button>
+                </div>
 
                 <Search />
                 <AboutContact />
