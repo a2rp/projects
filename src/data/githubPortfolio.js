@@ -220,7 +220,7 @@ const refreshPortfolioData = async (cached) => {
         ? profileResult.value.public_repos
         : cached.publicRepoCount;
 
-    if (reposResult.status === "rejected" && cached.repos.length === 0) {
+    if (reposResult.status === "rejected") {
         throw reposResult.reason;
     }
 
@@ -272,14 +272,14 @@ const refreshPortfolioData = async (cached) => {
     };
 };
 
-export const syncGitHubPortfolio = () => {
+export const syncGitHubPortfolio = ({ force = false } = {}) => {
     const cached = readStoredData();
     const syncedAt = Date.parse(cached.syncedAt || "");
     const cacheIsFresh = Number.isFinite(syncedAt)
         && Date.now() - syncedAt < REFRESH_AFTER
         && !screenshotSelectionNeedsRefresh(cached);
 
-    if (cacheIsFresh) return Promise.resolve(readCachedGitHubPortfolio());
+    if (!force && cacheIsFresh) return Promise.resolve(readCachedGitHubPortfolio());
     if (refreshInFlight) return refreshInFlight;
 
     refreshInFlight = refreshPortfolioData(cached).finally(() => {

@@ -1,3 +1,9 @@
+@keyframes refreshSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .wrapper {
     width: 100%;
     max-width: 1440px;
@@ -192,6 +198,57 @@
                         background: rgb(25 34 28 / 78%);
                     }
                 }
+
+                .refreshAction {
+                    display: inline-flex;
+                    min-height: 46px;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    padding: 0 16px;
+                    border: 1px solid rgb(155 229 181 / 36%);
+                    border-radius: 11px;
+                    color: #d9f3e2;
+                    background: rgb(9 20 13 / 72%);
+                    font: inherit;
+                    font-size: 14px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+
+                    &:hover:not(:disabled) {
+                        border-color: #9be5b5;
+                        background: rgb(17 37 24 / 88%);
+                        box-shadow: 0 8px 24px rgb(98 207 148 / 16%);
+                    }
+
+                    &:focus-visible {
+                        outline: 2px solid #b0efc6;
+                        outline-offset: 3px;
+                    }
+
+                    &:disabled {
+                        cursor: wait;
+                        opacity: 0.82;
+                    }
+
+                    .refreshSpinner {
+                        width: 16px;
+                        height: 16px;
+                        flex: 0 0 16px;
+                        border: 2px solid rgb(217 243 226 / 35%);
+                        border-top-color: #9be5b5;
+                        border-radius: 50%;
+                        animation: refreshSpin 800ms linear infinite;
+                    }
+                }
+            }
+
+            .refreshError {
+                margin: 10px 0 0;
+                color: #ffb8aa;
+                font-size: 13px;
+                line-height: 1.5;
             }
 
             .heroTech {
@@ -330,7 +387,8 @@
                 }
 
                 .heroActions {
-                    a {
+                    a,
+                    button {
                         width: 100%;
                     }
                 }

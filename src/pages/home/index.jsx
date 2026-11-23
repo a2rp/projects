@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { FiRefreshCw } from "react-icons/fi";
 import heroImage from "../../assets/default-project-hero.webp";
 import {
     GITHUB_OWNER,
@@ -28,7 +29,13 @@ const formatRepoDate = (value) => {
 const Home = () => {
     const [failedScreenshot, setFailedScreenshot] = useState("");
     const location = useLocation();
-    const { repos: repoUpdates, screenshots } = useGitHubPortfolio();
+    const {
+        repos: repoUpdates,
+        screenshots,
+        isFetching,
+        refreshError,
+        refreshNow,
+    } = useGitHubPortfolio();
 
     const latestRepo = useMemo(
         () => repoUpdates
@@ -154,7 +161,23 @@ const Home = () => {
                             >
                                 View source code
                             </a>
+                            <button
+                                className={styles.refreshAction}
+                                type="button"
+                                onClick={refreshNow}
+                                disabled={isFetching}
+                                aria-busy={isFetching}
+                                aria-label={isFetching ? "Fetching GitHub projects" : "Refresh GitHub projects"}
+                            >
+                                {isFetching ? (
+                                    <span className={styles.refreshSpinner} aria-hidden="true" />
+                                ) : (
+                                    <FiRefreshCw aria-hidden="true" />
+                                )}
+                                <span>{isFetching ? "Fetching…" : "Refresh GitHub data"}</span>
+                            </button>
                         </div>
+                        {refreshError && <p className={styles.refreshError} role="status">{refreshError}</p>}
 
                         <div className={styles.heroTech} role="group" aria-label="Project technology stack">
                             <span className={styles.heroTechLabel}>Built with</span>
