@@ -2,7 +2,9 @@
 
 A searchable React directory of Ashish Ranjan's frontend projects with live demos, source repositories, and technology tags.
 
-![Projects Index screenshot](screenshot.png)
+## Preview
+
+![Projects Index home page](./screenshot.png)
 
 ## Features
 
