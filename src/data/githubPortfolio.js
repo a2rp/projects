@@ -6,7 +6,7 @@ const LEGACY_REPOS_KEY = "projects-portfolio:github-repos:v1";
 const LEGACY_PROFILE_KEY = "projects-portfolio:github-profile:v1";
 const LEGACY_SCREENSHOTS_KEY = "projects-portfolio:repository-screenshots:v1";
 const REFRESH_AFTER = 6 * 60 * 60 * 1000;
-const HERO_EXCLUDED_REPOS = new Set(["a2rp", "projects"]);
+const HIDDEN_REPO_NAMES = new Set(["a2rp"]);
 const SCREENSHOT_SELECTION_MODE = "latest-root-image-v1";
 const ROOT_IMAGE_PATTERN = /\.(png|jpe?g|webp|avif|gif|bmp|tiff?|svg)$/i;
 export const FALLBACK_PUBLIC_REPO_COUNT = 477;
@@ -19,7 +19,18 @@ export const getProjectRepoName = (project) => {
     return match?.[1]?.replace(/\.git$/i, "").toLowerCase() || "";
 };
 
-export const getRepoTimestamp = (repo) => Date.parse(repo?.pushedAt || repo?.updatedAt || "") || 0;
+export const isPortfolioRepo = (repo) => Boolean(repo?.name)
+    && !HIDDEN_REPO_NAMES.has(repo.name.toLowerCase());
+
+export const getRepoActivityDate = (repo) => repo?.pushedAt || repo?.updatedAt || "";
+
+export const getRepoActivityLabel = (repo) => repo?.pushedAt ? "Last pushed" : "Last updated";
+
+export const getRepoTimestamp = (repo) => Date.parse(getRepoActivityDate(repo)) || 0;
+
+export const compareReposByActivity = (first, second) => (
+    getRepoTimestamp(second) - getRepoTimestamp(first)
+);
 
 const parseLocalStorage = (key) => {
     if (typeof window === "undefined") return null;
@@ -129,8 +140,6 @@ const fetchRelevantRepos = async (cachedRepos) => {
     return [...reposByName.values()];
 };
 
-const isHeroRepo = (repo) => !HERO_EXCLUDED_REPOS.has(repo?.name?.toLowerCase());
-
 const getScreenshotRepos = (repos) => {
     const screenshotRepos = new Map(
         projects
@@ -139,8 +148,8 @@ const getScreenshotRepos = (repos) => {
             .map((repo) => [repo.name.toLowerCase(), repo]),
     );
     const latestRepo = [...repos]
-        .filter(isHeroRepo)
-        .sort((first, second) => getRepoTimestamp(second) - getRepoTimestamp(first))[0];
+        .filter(isPortfolioRepo)
+        .sort(compareReposByActivity)[0];
 
     if (latestRepo) screenshotRepos.set(latestRepo.name.toLowerCase(), latestRepo);
     return screenshotRepos;

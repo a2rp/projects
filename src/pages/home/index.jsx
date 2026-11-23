@@ -4,18 +4,18 @@ import { FiRefreshCw } from "react-icons/fi";
 import heroImage from "../../assets/default-project-hero.webp";
 import {
     GITHUB_OWNER,
+    compareReposByActivity,
+    getRepoActivityDate,
+    getRepoActivityLabel,
     getProjectRepoName,
-    getRepoTimestamp,
+    isPortfolioRepo,
 } from "../../data/githubPortfolio";
 import { projects } from "../../data/projects";
 import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
 import AboutContact from "../../components/aboutContact";
 import Search from "../search";
 import styles from "./style.module.css";
-const HERO_EXCLUDED_REPOS = new Set(["a2rp", "projects"]);
-const defaultFeaturedProject = projects[projects.length - 1];
-
-const isEligibleHeroRepo = (repo) => !HERO_EXCLUDED_REPOS.has(repo?.name?.toLowerCase());
+const defaultFeaturedProject = projects[0];
 
 const formatRepoDate = (value) => {
     if (!value || !Number.isFinite(Date.parse(value))) return "Not synced";
@@ -51,8 +51,8 @@ const Home = () => {
 
     const latestRepo = useMemo(
         () => repoUpdates
-            .filter(isEligibleHeroRepo)
-            .sort((a, b) => getRepoTimestamp(b) - getRepoTimestamp(a))[0] || null,
+            .filter(isPortfolioRepo)
+            .sort(compareReposByActivity)[0] || null,
         [repoUpdates],
     );
     const featuredProject = useMemo(
@@ -78,7 +78,7 @@ const Home = () => {
     const visibleHeroImage = heroScreenshot && failedScreenshot !== heroScreenshot
         ? heroScreenshot
         : heroImage;
-    const updatedDate = formatRepoDate(latestRepo?.pushedAt || latestRepo?.updatedAt);
+    const activityDate = formatRepoDate(getRepoActivityDate(latestRepo));
 
     useEffect(() => {
         if (location.hash !== "#search") return;
@@ -102,15 +102,15 @@ const Home = () => {
                     <div className={styles.heroContent}>
                         <p className={styles.heroEyebrow}>
                             <span className={styles.eyebrowLine} />
-                            <span>Latest updated repository</span>
+                            <span>Latest repository activity</span>
                             <span className={styles.eyebrowDivider}>|</span>
-                            <span>{latestRepo ? `Updated ${updatedDate}` : "Portfolio project"}</span>
+                            <span>{latestRepo ? `${getRepoActivityLabel(latestRepo)} ${activityDate}` : "Portfolio project"}</span>
                         </p>
                         <h1 className={styles.heroTitle} id="featured-project-title">
-                            {featuredProject.name}
+                            {latestRepo?.name || getProjectRepoName(featuredProject) || featuredProject.name}
                         </h1>
                         <p className={styles.heroTagline}>
-                            {latestRepo?.language || featuredProject.tech[0]} project, recently updated.
+                            {latestRepo?.language || featuredProject.tech[0]} project, recently active.
                         </p>
                         <p className={styles.heroDescription}>{featuredProject.desc}</p>
 
@@ -122,8 +122,8 @@ const Home = () => {
                                         <span>Repository created</span>
                                     </div>
                                     <div className={styles.heroFact} role="listitem">
-                                        <strong>{updatedDate}</strong>
-                                        <span>Repository updated</span>
+                                        <strong>{activityDate}</strong>
+                                        <span>{getRepoActivityLabel(latestRepo)}</span>
                                     </div>
                                     <div className={styles.heroFact} role="listitem">
                                         <strong>{latestRepo.language || "Multi-stack"}</strong>

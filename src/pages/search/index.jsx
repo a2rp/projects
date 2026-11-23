@@ -14,8 +14,11 @@ import {
 import defaultProjectImage from "../../assets/default-project-hero.webp";
 import { projectCollections, projects } from "../../data/projects";
 import {
+    compareReposByActivity,
+    getRepoActivityDate,
+    getRepoActivityLabel,
     getProjectRepoName,
-    getRepoTimestamp,
+    isPortfolioRepo,
 } from "../../data/githubPortfolio";
 import useGitHubPortfolio from "../../hooks/useGitHubPortfolio";
 import styles from "./style.module.css";
@@ -31,7 +34,6 @@ const featuredProjectByRepoName = new Map(
 );
 
 const toUniqueList = (values) => [...new Set(values.filter(Boolean))];
-const excludedRepositoryNames = new Set(["a2rp"]);
 const TECH_STACK_OPTIONS = [
     "MERN",
     "MongoDB",
@@ -132,7 +134,7 @@ const Search = () => {
     const { repos: githubRepos, screenshots } = useGitHubPortfolio();
 
     const visibleGithubRepos = useMemo(
-        () => githubRepos.filter((repo) => !excludedRepositoryNames.has(repo.name.toLowerCase())),
+        () => githubRepos.filter(isPortfolioRepo),
         [githubRepos],
     );
 
@@ -160,7 +162,7 @@ const Search = () => {
         const featuredFallbacks = projects
             .filter((project) => {
                 const repoName = getProjectRepoName(project);
-                return !excludedRepositoryNames.has(repoName) && !repoNames.has(repoName);
+                return isPortfolioRepo({ name: repoName }) && !repoNames.has(repoName);
             })
             .map((project, index) => ({
                 ...project,
@@ -316,7 +318,7 @@ const Search = () => {
             .sort((first, second) => {
                 if (sortOrder === "name-asc") return first.name.localeCompare(second.name);
                 if (sortOrder === "name-desc") return second.name.localeCompare(first.name);
-                return getRepoTimestamp(second.repo) - getRepoTimestamp(first.repo)
+                return compareReposByActivity(first.repo, second.repo)
                     || first.originalIndex - second.originalIndex;
             });
     }, [query, repositories, sortOrder, techStack, topicFilter]);
@@ -421,7 +423,7 @@ const Search = () => {
             document.removeEventListener("keydown", handleModalKeys);
             if (pageScrollArea) pageScrollArea.style.overflowY = previousOverflowY || "auto";
         };
-    }, [isModalOpen]);
+    }, [isModalOpen, itemsPerPage]);
 
     const goToPage = (page) => {
         setCurrentPage(page);
@@ -643,7 +645,7 @@ const Search = () => {
                                 setSortOrder(event.target.value);
                                 setCurrentPage(1);
                             }}>
-                                <option value="recent">Recently updated</option>
+                                <option value="recent">Recent activity</option>
                                 <option value="name-asc">Name: A to Z</option>
                                 <option value="name-desc">Name: Z to A</option>
                             </select>
@@ -743,12 +745,12 @@ const Search = () => {
                                                 </time>
                                             </span>
                                             <span className={styles.repoDate}>
-                                                <span className={styles.repoDateLabel}>Updated</span>
+                                                <span className={styles.repoDateLabel}>{getRepoActivityLabel(repository.repo)}</span>
                                                 <time
                                                     className={styles.repoDateValue}
-                                                    dateTime={repository.repo?.updatedAt || repository.repo?.pushedAt || undefined}
+                                                    dateTime={getRepoActivityDate(repository.repo) || undefined}
                                                 >
-                                                    {formatRepositoryDate(repository.repo?.updatedAt || repository.repo?.pushedAt)}
+                                                    {formatRepositoryDate(getRepoActivityDate(repository.repo))}
                                                 </time>
                                             </span>
                                         </span>
@@ -912,8 +914,8 @@ const Search = () => {
                                         <dd>{formatRepositoryDate(selectedRepository.repo?.createdAt)}</dd>
                                     </div>
                                     <div>
-                                        <dt>Last updated</dt>
-                                        <dd>{formatRepositoryDate(selectedRepository.repo?.pushedAt || selectedRepository.repo?.updatedAt)}</dd>
+                                        <dt>{getRepoActivityLabel(selectedRepository.repo)}</dt>
+                                        <dd>{formatRepositoryDate(getRepoActivityDate(selectedRepository.repo))}</dd>
                                     </div>
                                     <div>
                                         <dt>Primary language</dt>
