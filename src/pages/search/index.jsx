@@ -785,14 +785,12 @@ const Search = () => {
                                                 setFailedScreenshots((current) => new Map(current).set(repoName, screenshotUrl));
                                             }}
                                         />
-                                        <span className={styles.posterName}>
-                                            {exactRepositoryName}
-                                        </span>
                                         <span className={styles.posterIndex}>
                                             {String(pageStart + index).padStart(2, "0")}
                                         </span>
                                     </span>
                                     <span className={styles.cardInfo}>
+                                        <h3 className={styles.repoName}>{exactRepositoryName}</h3>
                                         <span className={styles.projectDescription} title={repository.desc}>
                                             {repository.desc}
                                         </span>
